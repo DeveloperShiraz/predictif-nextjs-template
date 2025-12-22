@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
+import { getUrl } from "aws-amplify/storage";
 import Heading from "@/components/ui/Heading";
 import { Button } from "@/components/ui/Button";
-import { RefreshCw, AlertCircle, CheckCircle, Clock, Edit, Trash2 } from "lucide-react";
+import { RefreshCw, AlertCircle, CheckCircle, Clock, Edit, Trash2, Download } from "lucide-react";
 import { EditIncidentReportModal } from "@/components/forms/EditIncidentReportModal";
 
 const client = generateClient<Schema>();
@@ -36,6 +37,29 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [editingReport, setEditingReport] = useState<IncidentReport | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [photoUrlsMap, setPhotoUrlsMap] = useState<Record<string, string[]>>({});
+
+  const getSignedPhotoUrls = async (photoPaths: string[]): Promise<string[]> => {
+    if (!photoPaths || photoPaths.length === 0) return [];
+
+    try {
+      const urlPromises = photoPaths.map(async (path) => {
+        try {
+          const result = await getUrl({ path });
+          return result.url.toString();
+        } catch (error) {
+          console.error(`Error getting URL for ${path}:`, error);
+          return null;
+        }
+      });
+
+      const urls = await Promise.all(urlPromises);
+      return urls.filter((url): url is string => url !== null);
+    } catch (error) {
+      console.error("Error getting signed URLs:", error);
+      return [];
+    }
+  };
 
   const fetchReports = async () => {
     setIsLoading(true);
@@ -43,9 +67,9 @@ export default function ReportsPage() {
     try {
       console.log("Fetching incident reports...");
       const result = await client.models.IncidentReport.list();
-      
+
       console.log("API Response:", result);
-      
+
       if (result.data) {
         const sortedReports = result.data.sort((a, b) => {
           const dateA = new Date(a.createdAt || a.incidentDate).getTime();
@@ -54,6 +78,18 @@ export default function ReportsPage() {
         });
         setReports(sortedReports as IncidentReport[]);
         console.log(`✅ Loaded ${sortedReports.length} incident reports`);
+
+        // Fetch signed URLs for all photos
+        const urlsMap: Record<string, string[]> = {};
+        for (const report of sortedReports) {
+          if (report.photoUrls && report.photoUrls.length > 0) {
+            console.log(`Fetching signed URLs for report ${report.id}:`, report.photoUrls);
+            const validPaths = report.photoUrls.filter((path): path is string => path !== null && path !== undefined);
+            urlsMap[report.id] = await getSignedPhotoUrls(validPaths);
+            console.log(`✅ Got ${urlsMap[report.id].length} signed URLs`);
+          }
+        }
+        setPhotoUrlsMap(urlsMap);
       } else if (result.errors) {
         console.error("Errors fetching reports:", result.errors);
         setError(result.errors.map(e => e.message).join(", "));
@@ -273,20 +309,29 @@ export default function ReportsPage() {
                 <p className="text-sm text-gray-900 whitespace-pre-wrap">{report.description}</p>
               </div>
 
-              {report.photoUrls && report.photoUrls.length > 0 && (
+              {photoUrlsMap[report.id] && photoUrlsMap[report.id].length > 0 && (
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase mb-2">Photos</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {report.photoUrls.map((url, index) => (
-                      <a
-                        key={index}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800 underline"
-                      >
-                        Photo {index + 1}
-                      </a>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {photoUrlsMap[report.id].map((signedUrl, index) => (
+                      <div key={index} className="relative group">
+                        <a
+                          href={signedUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <img
+                            src={signedUrl}
+                            alt={`Incident photo ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border border-gray-200 hover:border-blue-400 transition-colors"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-lg flex items-center justify-center">
+                            <Download className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </a>
+                        <p className="text-xs text-gray-600 mt-1 text-center">Photo {index + 1}</p>
+                      </div>
                     ))}
                   </div>
                 </div>
