@@ -1,0 +1,462 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode default colors */
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 222.2 84% 4.9%;
+    --topbar: 0 0% 98%;
+    --sidebar: 0 0% 96%;
+
+    --brand: 357 77% 50%;
+    --brand-foreground: 0 0% 100%;
+
+    /* UI Colors */
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-width: 256px;
+    --sidebar-collapsed-width: 80px;
+
+    /* Theme-specific variables */
+    --theme-background: var(--background);
+    --theme-topbar: var(--topbar);
+    --theme-sidebar: var(--sidebar);
+
+    --secondary2: 210 75% 25%; /* #084b7e for light mode */
+    --secondary2-foreground: 0 0% 100%;
+
+    --secondary3: 210 40% 96.1%;
+    --secondary3-foreground: 222.2 47.4% 11.2%;
+
+    /* Z-index hierarchy */
+    --z-index-base: 0;
+    --z-index-cloudscape: 1000;
+    --z-index-dropdown: 9000;
+    --z-index-modal: 9500;
+    --z-index-tooltip: 9999;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  /* Scrollbar styles */
+  /* Global scrollbar styles */
+  html, body, .overflow-auto, .overflow-x-auto, .overflow-y-auto {
+    /* Vertical scrollbar */
+    &::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: rgba(80, 80, 80, 0.5);
+      border: 1px solid transparent;
+      border-radius: 100vh;
+      background-clip: padding-box;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: rgba(80, 80, 80, 0.7);
+    }
+
+    /* Remove buttons */
+    &::-webkit-scrollbar-button {
+      display: none;
+    }
+  }
+
+  /* Corner */
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Dark mode */
+  .dark {
+    html, body, .overflow-auto, .overflow-x-auto, .overflow-y-auto {
+      &::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+
+      &::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.5);
+      }
+    }
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%
+  }
+
+
+  /* Dark mode */
+  .dark {
+    /* Dark theme colors */
+    --background: 216 26% 10%; /* #131920 */
+    --foreground: 210 40% 98%;
+    --topbar: 215 25% 12%; /* #161d26 */
+    --sidebar: 215 25% 12%; /* #161d26 */
+
+    --brand: 357 77% 60%;
+    --brand-foreground: 0 0% 100%;
+
+    /* UI Colors */
+    --primary: 357 77% 60%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --card: 215 25% 12%; /* #161d26 */
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: var(--brand);
+
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-width: 256px;
+    --sidebar-collapsed-width: 80px;
+
+    /* Theme-specific variables */
+    --theme-background: var(--background);
+    --theme-topbar: var(--topbar);
+    --theme-sidebar: var(--sidebar);
+
+    --secondary2: 204 84% 46%; /* #0c78ca for dark mode */
+    --secondary2-foreground: 0 0% 100%;
+
+    --secondary3: 201 96% 32%; /* Different shade of blue for dark mode (#024E7C) */
+    --secondary3-foreground: 210 40% 98%;
+
+    /* Cloudscape dark theme customization */
+    --color-background-layout-main: hsl(var(--background));
+    --color-background-container-content: hsl(var(--background));
+    --color-text-body-default: hsl(var(--foreground));
+    --color-border-divider-default: hsl(var(--border));
+  }
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ml-sidebar {
+  margin-left: var(--sidebar-width);
+}
+
+.sidebar-collapsed .ml-sidebar {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Show only when sidebar is expanded */
+.sidebar-expanded-only {
+  display: flex;
+}
+
+[data-collapsed="true"] .sidebar-expanded-only {
+  display: none;
+}
+
+/* Show only when sidebar is collapsed */
+.sidebar-collapsed-only {
+  display: none;
+}
+
+[data-collapsed="true"] .sidebar-collapsed-only {
+  display: flex;
+}
+
+@keyframes rotateShake {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(-10deg); }
+  40% { transform: rotate(10deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* Main text and icon hover effect */
+.menu-item-hover:hover .icon-rotate,
+.menu-item-hover:hover > div > span:not(.badge) {
+  color: rgb(2, 136, 209) !important;
+}
+
+/* Animation for icon */
+.menu-item-hover:hover .icon-rotate {
+  animation: rotateShake 0.5s ease;
+}
+
+/* Badge styles */
+.badge {
+  background-color: rgb(229, 231, 235) !important;
+  color: rgb(55, 65, 81) !important;
+}
+
+.dark .badge {
+  background-color: rgb(55, 65, 81) !important;
+  color: white !important;
+}
+
+.filter-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background-color: #2196f3;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transform: translate(25%, -25%);
+  box-shadow: 0 0 0 2px white;
+  .dark & {
+    box-shadow: 0 0 0 2px #18181b;
+  }
+}
+
+.animate-underline {
+  position: relative;
+}
+
+.animate-underline::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 50%;
+  background-color: #000;
+  transition: all 0.3s ease-in-out;
+  transform: translateX(-50%);
+}
+
+.animate-underline:focus::after {
+  width: 100%;
+}
+
+.dark .animate-underline::after {
+  background-color: #fff;
+}
+
+/* Override any mainState attributes */
+[data-mainstate],
+[mainstate] {
+  all: unset !important;
+}
+
+/* Custom styling for DocViewer */
+:root {
+  --doc-viewer-background-color: white;
+}
+
+.input-row {
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.notes-row {
+  height: 5rem;
+}
+
+/* Ensure proper spacing */
+.form-grid {
+  display: grid;
+  gap: 0;
+}
+
+/* Force dark theme colors */
+.dark-theme {
+  background-color: #0c1116;
+  color: white;
+}
+
+/* Remove default divider from preferences button */
+[data-testid="preferences-button"]::before {
+  display: none !important;
+}
+
+/* Add custom styles for the main content area */
+.main-content {
+  background-color: #ffffff;
+}
+
+.dark .main-content {
+  background-color: #131920;
+}
+
+/* Custom card border styling */
+.rounded-xl.border-\[0\.5px\] {
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark .rounded-xl.border-\[0\.5px\] {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-awsui-modal-root] {
+  z-index: 1000 !important;
+}
+
+/* Custom Select Button Styling */
+.custom-select-button button {
+  border-radius: 1rem !important;
+  color: #0972d3 !important;
+  background: transparent !important;
+  border-color: #0972d3 !important;
+  font-weight: bold !important;
+  padding: 0.25rem 1rem !important;
+  height: 2rem !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  min-width: 150px !important;
+}
+
+.custom-select-button button:hover {
+  background-color: #f2f8fd !important;
+  border-color: #0972d3 !important;
+  color: #0972d3 !important;
+}
+
+.dark .custom-select-button button {
+  color: #539fe5 !important;
+  border-color: #539fe5 !important;
+  background-color: transparent !important;
+}
+
+.dark .custom-select-button button:hover {
+  background-color: rgba(0, 7, 22, 0.1) !important;
+  border-color: #539fe5 !important;
+  color: #539fe5 !important;
+}
+
+/* Style the dropdown icon */
+.custom-select-button button svg {
+  color: #0972d3 !important;
+  margin-left: auto !important;
+}
+
+.dark .custom-select-button button svg {
+  color: #539fe5 !important;
+}
+
+/* Ensure text color stays consistent */
+.custom-select-button button span {
+  color: #0972d3 !important;
+  font-weight: bold !important;
+}
+
+.dark .custom-select-button button span {
+  color: #539fe5 !important;
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

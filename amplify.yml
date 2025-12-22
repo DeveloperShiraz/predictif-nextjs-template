@@ -1,0 +1,42 @@
+version: 1
+applications:
+  - appRoot: .
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - export NODE_OPTIONS="--max-old-space-size=12288"
+            - npm install -g pnpm
+            - pnpm install --force
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    backend:
+      phases:
+        preBuild:
+          commands:
+            - export NODE_OPTIONS="--max-old-space-size=12288"
+            - export AMPLIFY_CLI_MEMORY_LIMIT=12288
+            - export AMPLIFY_CDK_MEMORY_LIMIT=12288
+            - npm install -g pnpm
+            # Install specific version of esbuild globally
+            - npm install -g esbuild@0.25.2
+            - rm -rf node_modules
+            - rm -rf .pnpm-store
+            - pnpm install --force
+            # Install same version locally
+            - pnpm add -D esbuild@0.25.2
+            # Remove any other versions
+            - rm -rf node_modules/.pnpm/esbuild@0.23.1
+        build:
+          commands:
+            - export NODE_OPTIONS="--max-old-space-size=12288"
+            - export ESBUILD_BINARY_PATH=$(which esbuild)
+            - pnpm exec ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
