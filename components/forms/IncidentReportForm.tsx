@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Upload, X, CheckCircle, AlertCircle } from "lucide-react";
 import { generateClient } from "aws-amplify/data";
 import { uploadData } from "aws-amplify/storage";
+import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "@/amplify/data/resource";
 
 import { Button } from "@/components/ui/Button";
@@ -118,7 +119,29 @@ export function IncidentReportForm() {
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
     try {
+      console.log("=== FORM SUBMISSION START ===");
       console.log("Submitting form data:", data);
+      
+      // Verify authentication first
+      console.log("Checking authentication...");
+      let session;
+      let currentUser;
+      try {
+        session = await fetchAuthSession();
+        currentUser = await getCurrentUser();
+        console.log("✅ Authentication verified:", {
+          hasAccessToken: !!session.tokens?.accessToken,
+          userId: currentUser.userId,
+          username: currentUser.username,
+        });
+      } catch (authError) {
+        console.error("❌ Authentication check failed:", authError);
+        throw new Error("You must be signed in to submit an incident report. Please sign in and try again.");
+      }
+
+      if (!session.tokens?.accessToken) {
+        throw new Error("No valid authentication token found. Please sign in and try again.");
+      }
       
       // Check if client and models are available
       if (!client || !client.models) {
@@ -129,24 +152,26 @@ export function IncidentReportForm() {
         throw new Error("IncidentReport model not found. Please deploy the schema first using 'npx ampx sandbox'");
       }
       
-      // Skip photo upload for now to test data submission
+      console.log("✅ Client and models available");
+      console.log("Available models:", Object.keys(client.models || {}));
+      
+      // Upload photos if any
       let photoUrls: string[] = [];
       
-      // Only upload photos if storage is configured
       if (files.length > 0) {
         try {
           console.log("Uploading photos...");
           photoUrls = await uploadPhotos(files);
-          console.log("Photos uploaded:", photoUrls);
+          console.log("✅ Photos uploaded:", photoUrls);
         } catch (storageError) {
-          console.warn("Photo upload failed, continuing without photos:", storageError);
+          console.warn("⚠️ Photo upload failed, continuing without photos:", storageError);
           // Continue without photos if storage fails
           photoUrls = [];
         }
       }
 
-      // Create incident report
-      console.log("Creating incident report...");
+      // Prepare incident data
+      console.log("Preparing incident data...");
       const incidentData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -162,32 +187,70 @@ export function IncidentReportForm() {
         photoUrls: photoUrls,
       };
       
-      console.log("Incident data to submit:", incidentData);
-      console.log("Available models:", Object.keys(client.models || {}));
+      console.log("Incident data to submit:", JSON.stringify(incidentData, null, 2));
       
+      // Create incident report
+      console.log("Calling API to create incident report...");
       const result = await client.models.IncidentReport.create(incidentData);
       
-      console.log("Result:", result);
+      console.log("=== API RESPONSE ===");
+      console.log("Full result object:", result);
+      console.log("Result.data:", result.data);
+      console.log("Result.errors:", result.errors);
+      console.log("===================");
 
       if (result.data) {
+        console.log("✅ Success! Created incident report with ID:", result.data.id);
         const successMessage = files.length > 0 && photoUrls.length === 0 
           ? "Incident report submitted successfully! (Photos could not be uploaded due to storage configuration)"
-          : "Incident report submitted successfully!";
+          : `Incident report submitted successfully! ID: ${result.data.id}`;
         
         showNotification('success', successMessage);
         form.reset();
         setFiles([]);
-      } else if (result.errors) {
-        console.error("GraphQL errors:", result.errors);
-        throw new Error(`GraphQL errors: ${result.errors.map(e => e.message).join(', ')}`);
+      } else if (result.errors && result.errors.length > 0) {
+        console.error("❌ GraphQL errors:", result.errors);
+        const errorMessages = result.errors.map(e => {
+          console.error("Error details:", {
+            message: e.message,
+            errorType: e.errorType,
+            path: e.path,
+            locations: e.locations,
+          });
+          return e.message;
+        }).join(', ');
+        
+        // Check for DynamoDB ResourceNotFoundException
+        const isResourceNotFound = result.errors.some(e => 
+          e.errorType === 'DynamoDB:ResourceNotFoundException' || 
+          e.message?.includes('Requested resource not found')
+        );
+        
+        if (isResourceNotFound) {
+          throw new Error(
+            "DynamoDB table not found. Please ensure your Amplify sandbox is running. " +
+            "Run 'npx ampx sandbox' in a separate terminal to deploy your backend resources."
+          );
+        }
+        
+        throw new Error(`Failed to submit: ${errorMessages}`);
       } else {
-        throw new Error("Failed to create incident report - no data returned");
+        console.error("❌ No data and no errors returned - unexpected response");
+        throw new Error("Failed to create incident report - no data returned and no errors reported");
       }
     } catch (error: any) {
-      console.error("Error submitting form:", error);
-      showNotification('error', `Error submitting incident report: ${error?.message || error}. Please try again.`);
+      console.error("=== ERROR DETAILS ===");
+      console.error("Error type:", error?.constructor?.name);
+      console.error("Error message:", error?.message);
+      console.error("Error stack:", error?.stack);
+      console.error("Full error object:", error);
+      console.error("====================");
+      
+      const errorMessage = error?.message || String(error) || "Unknown error occurred";
+      showNotification('error', `Error submitting incident report: ${errorMessage}. Please check the browser console for details.`);
     } finally {
       setIsSubmitting(false);
+      console.log("=== FORM SUBMISSION END ===");
     }
   };
 

@@ -14,6 +14,7 @@ import {
   Settings,
   BrainCircuit,
   History,
+  FileText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -226,6 +227,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: LayoutDashboard,
       href: "/Dashboard",
       active: pathname === "/Dashboard",
+    },
+    {
+      label: "Reports",
+      icon: FileText,
+      href: "/Dashboard/reports",
+      active: pathname === "/Dashboard/reports",
     },
   ];
 
