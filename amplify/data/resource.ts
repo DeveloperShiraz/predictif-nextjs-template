@@ -18,23 +18,26 @@ const schema = a.schema({
     .model({
       content: a.string(),
     })
-
-
-    //! Customize your auth rules: https://docs.amplify.aws/nextjs/build-a-backend/data/customize-authz/
-
-    // Option 1: Authorization rules for authenticated users, https://docs.amplify.aws/nextjs/build-a-backend/data/customize-authz/signed-in-user-data-access/
     .authorization((allow) => [allow.authenticated()]),
 
-    // Option 2: Authorization rules for public API key
-    // .authorization((allow) => [allow.authenticated()]),
-
-    // Option 3: Authorization rules for specific groups, https://docs.amplify.aws/nextjs/build-a-backend/data/customize-authz/user-group-based-data-access/
-    // .authorization((allow) => [
-    //   allow.owner(),
-    //   allow
-    //     .groups(["Admin", "Manager", "Gatekeeper"])
-    //     .to(["read", "create", "update", "delete"]),
-    // ]),
+  IncidentReport: a
+    .model({
+      firstName: a.string().required(),
+      lastName: a.string().required(),
+      phone: a.string().required(),
+      email: a.email().required(),
+      address: a.string().required(),
+      apartment: a.string(),
+      city: a.string().required(),
+      state: a.string().required(),
+      zip: a.string().required(),
+      incidentDate: a.date().required(),
+      description: a.string().required(),
+      photoUrls: a.string().array(), // Store S3 URLs of uploaded photos
+      status: a.enum(["submitted", "in_review", "resolved"]),
+      submittedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.authenticated()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

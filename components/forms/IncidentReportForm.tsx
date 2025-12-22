@@ -5,12 +5,16 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, Upload, X } from "lucide-react";
+import { CalendarIcon, Upload, X, CheckCircle, AlertCircle } from "lucide-react";
+import { generateClient } from "aws-amplify/data";
+import { uploadData } from "aws-amplify/storage";
+import type { Schema } from "@/amplify/data/resource";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Calendar } from "@/components/ui/Calendar";
+import { AddressAutocomplete } from "@/components/ui/AddressAutocomplete";
 import {
   Form,
   FormControl,
@@ -26,14 +30,25 @@ import {
 } from "@/components/ui/Popover";
 import { cn } from "@/lib/utils";
 
+const client = generateClient<Schema>();
+
 // Form validation schema
 const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  firstName: z.string().min(1, "First name is required").regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens, and apostrophes"),
+  lastName: z.string().min(1, "Last name is required").regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens, and apostrophes"),
+  phone: z.string()
+    .min(10, "Phone number must be at least 10 digits")
+    .regex(/^[\d\s\-\(\)\+\.]+$/, "Phone number can only contain digits, spaces, hyphens, parentheses, plus signs, and periods")
+    .transform((val) => val.replace(/\D/g, '')) // Remove non-digits for processing
+    .refine((val) => val.length >= 10, "Phone number must have at least 10 digits"),
   email: z.string().email("Invalid email address"),
   address: z.string().min(1, "Address is required"),
-  zip: z.string().min(5, "ZIP code must be at least 5 digits"),
+  apartment: z.string().optional(),
+  city: z.string().min(1, "City is required").regex(/^[a-zA-Z\s'-]+$/, "City can only contain letters, spaces, hyphens, and apostrophes"),
+  state: z.string().min(2, "State is required").max(2, "State must be 2 characters").regex(/^[A-Z]{2}$/, "State must be 2 uppercase letters"),
+  zip: z.string()
+    .min(5, "ZIP code must be at least 5 digits")
+    .regex(/^\d{5}(-\d{4})?$/, "ZIP code must be in format 12345 or 12345-6789"),
   incidentDate: z.date({
     required_error: "Date of incident is required",
   }),
@@ -51,6 +66,16 @@ export function IncidentReportForm() {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  const showNotification = (type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 5000); // Auto-hide after 5 seconds
+  };
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,15 +85,124 @@ export function IncidentReportForm() {
       phone: "",
       email: "",
       address: "",
+      apartment: "",
+      city: "",
+      state: "",
       zip: "",
       description: "",
       photos: [],
     },
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log("Form submitted:", { ...data, photos: files });
-    // Handle form submission here
+  const uploadPhotos = async (photos: FileWithPreview[]): Promise<string[]> => {
+    const uploadPromises = photos.map(async (photo, index) => {
+      const key = `incident-photos/${Date.now()}-${index}-${photo.name}`;
+      try {
+        const result = await uploadData({
+          key,
+          data: photo,
+          options: {
+            contentType: photo.type,
+          },
+        }).result;
+        return result.key;
+      } catch (error) {
+        console.error("Error uploading photo:", error);
+        throw error;
+      }
+    });
+
+    return Promise.all(uploadPromises);
+  };
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    try {
+      console.log("Submitting form data:", data);
+      
+      // Check if client and models are available
+      if (!client || !client.models) {
+        throw new Error("Amplify client not properly configured");
+      }
+      
+      if (!client.models.IncidentReport) {
+        throw new Error("IncidentReport model not found. Please deploy the schema first using 'npx ampx sandbox'");
+      }
+      
+      // Skip photo upload for now to test data submission
+      let photoUrls: string[] = [];
+      
+      // Only upload photos if storage is configured
+      if (files.length > 0) {
+        try {
+          console.log("Uploading photos...");
+          photoUrls = await uploadPhotos(files);
+          console.log("Photos uploaded:", photoUrls);
+        } catch (storageError) {
+          console.warn("Photo upload failed, continuing without photos:", storageError);
+          // Continue without photos if storage fails
+          photoUrls = [];
+        }
+      }
+
+      // Create incident report
+      console.log("Creating incident report...");
+      const incidentData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone.replace(/\D/g, ''), // Store only digits
+        email: data.email,
+        address: data.address,
+        apartment: data.apartment || "",
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+        incidentDate: data.incidentDate.toISOString().split('T')[0], // Convert to date string
+        description: data.description,
+        photoUrls: photoUrls,
+      };
+      
+      console.log("Incident data to submit:", incidentData);
+      console.log("Available models:", Object.keys(client.models || {}));
+      
+      const result = await client.models.IncidentReport.create(incidentData);
+      
+      console.log("Result:", result);
+
+      if (result.data) {
+        const successMessage = files.length > 0 && photoUrls.length === 0 
+          ? "Incident report submitted successfully! (Photos could not be uploaded due to storage configuration)"
+          : "Incident report submitted successfully!";
+        
+        showNotification('success', successMessage);
+        form.reset();
+        setFiles([]);
+      } else if (result.errors) {
+        console.error("GraphQL errors:", result.errors);
+        throw new Error(`GraphQL errors: ${result.errors.map(e => e.message).join(', ')}`);
+      } else {
+        throw new Error("Failed to create incident report - no data returned");
+      }
+    } catch (error: any) {
+      console.error("Error submitting form:", error);
+      showNotification('error', `Error submitting incident report: ${error?.message || error}. Please try again.`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Format as (XXX) XXX-XXXX
+    if (phoneNumber.length >= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    } else if (phoneNumber.length >= 3) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return phoneNumber;
+    }
   };
 
   const handleFiles = (fileList: FileList) => {
@@ -118,6 +252,31 @@ export function IncidentReportForm() {
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Incident Report Form</h1>
       
+      {/* Toast Notification */}
+      {notification && (
+        <div
+          className={cn(
+            "fixed top-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border transition-all duration-300 ease-in-out",
+            notification.type === 'success'
+              ? "bg-green-50 border-green-200 text-green-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          )}
+        >
+          {notification.type === 'success' ? (
+            <CheckCircle className="h-5 w-5 text-green-600" />
+          ) : (
+            <AlertCircle className="h-5 w-5 text-red-600" />
+          )}
+          <span className="text-sm font-medium">{notification.message}</span>
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+      
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* First Name / Last Name Row */}
@@ -159,7 +318,15 @@ export function IncidentReportForm() {
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter phone number" {...field} />
+                    <Input 
+                      placeholder="(555) 123-4567" 
+                      value={field.value}
+                      onChange={(e) => {
+                        const formatted = formatPhoneNumber(e.target.value);
+                        field.onChange(formatted);
+                      }}
+                      maxLength={14}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -180,7 +347,7 @@ export function IncidentReportForm() {
             />
           </div>
 
-          {/* Address / ZIP Row */}
+          {/* Address Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -189,7 +356,62 @@ export function IncidentReportForm() {
                 <FormItem>
                   <FormLabel>Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter address" {...field} />
+                    <AddressAutocomplete
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Enter street address"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="apartment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Apartment, Suite (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Apt, Suite, Unit, etc." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* City, State, ZIP Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter city" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="CA" 
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase().slice(0, 2);
+                        field.onChange(value);
+                      }}
+                      maxLength={2}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -202,7 +424,15 @@ export function IncidentReportForm() {
                 <FormItem>
                   <FormLabel>ZIP Code</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter ZIP code" {...field} />
+                    <Input 
+                      placeholder="12345" 
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 5);
+                        field.onChange(value);
+                      }}
+                      maxLength={5}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -343,8 +573,8 @@ export function IncidentReportForm() {
           </div>
 
           {/* Submit Button */}
-          <Button type="submit" className="w-full">
-            Submit Report
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit Report"}
           </Button>
         </form>
       </Form>
