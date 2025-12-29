@@ -15,7 +15,9 @@ import {
   BrainCircuit,
   History,
   FileText,
+  Users,
 } from "lucide-react";
+import { useUserRole } from "@/lib/auth/useUserRole";
 import {
   Sidebar,
   SidebarContent,
@@ -219,22 +221,72 @@ const sidebarStyles = `
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { resolvedTheme } = useTheme();
   const pathname = usePathname();
-  // const { user } = useAuth();
+  const { role, isLoading, isAdmin, isIncidentReporter } = useUserRole();
 
-  const routes = [
-    {
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      href: "/Dashboard",
-      active: pathname === "/Dashboard",
-    },
-    {
-      label: "Reports",
-      icon: FileText,
-      href: "/Dashboard/reports",
-      active: pathname === "/Dashboard/reports",
-    },
-  ];
+  // Define routes based on user role
+  const getRoutesByRole = () => {
+    if (isLoading) return [];
+
+    if (isAdmin) {
+      // Admin: Dashboard, Incident Form, Reports, Users
+      return [
+        {
+          label: "Dashboard",
+          icon: LayoutDashboard,
+          href: "/Dashboard",
+          active: pathname === "/Dashboard",
+        },
+        {
+          label: "Incident Form",
+          icon: FileText,
+          href: "/Dashboard/incident-form",
+          active: pathname === "/Dashboard/incident-form",
+        },
+        {
+          label: "Reports",
+          icon: FileText,
+          href: "/Dashboard/reports",
+          active: pathname === "/Dashboard/reports",
+        },
+        {
+          label: "Users",
+          icon: Users,
+          href: "/Dashboard/users",
+          active: pathname === "/Dashboard/users",
+        },
+      ];
+    }
+
+    if (isIncidentReporter) {
+      // IncidentReporter: Incident Form, Reports (only their own)
+      return [
+        {
+          label: "Incident Form",
+          icon: FileText,
+          href: "/Dashboard/incident-form",
+          active: pathname === "/Dashboard/incident-form",
+        },
+        {
+          label: "Reports",
+          icon: FileText,
+          href: "/Dashboard/reports",
+          active: pathname === "/Dashboard/reports",
+        },
+      ];
+    }
+
+    // Customer: Reports only (read-only)
+    return [
+      {
+        label: "Reports",
+        icon: FileText,
+        href: "/Dashboard/reports",
+        active: pathname === "/Dashboard/reports",
+      },
+    ];
+  };
+
+  const routes = getRoutesByRole();
 
   // Add data-theme attribute to html element for dark mode detection in CSS
   React.useEffect(() => {

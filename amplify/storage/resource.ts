@@ -4,7 +4,10 @@ export const storage = defineStorage({
   name: "incidentReportStorage",
   access: (allow) => ({
     "incident-photos/*": [
+      // All authenticated users can read, write, and delete
       allow.authenticated.to(["read", "write", "delete"]),
+      // Explicitly grant access to all groups
+      allow.groups(["Admin", "IncidentReporter", "Customer"]).to(["read", "write", "delete"]),
     ],
   }),
 });

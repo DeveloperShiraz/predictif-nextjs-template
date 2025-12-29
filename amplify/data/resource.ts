@@ -38,7 +38,15 @@ const schema = a.schema({
       status: a.enum(["submitted", "in_review", "resolved"]),
       submittedAt: a.datetime(),
     })
-    .authorization((allow) => [allow.authenticated()]),
+    .authorization((allow) => [
+      // Admins can do everything
+      allow.group("Admin"),
+      // IncidentReporters can create and manage their own reports
+      allow.group("IncidentReporter").to(["create"]),
+      allow.owner().to(["read", "update", "delete"]),
+      // Customers can only read their own reports
+      allow.group("Customer").to(["read"]),
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

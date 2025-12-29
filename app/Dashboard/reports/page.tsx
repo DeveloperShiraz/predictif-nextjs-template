@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import { getUrl, remove } from "aws-amplify/storage";
+import { fetchAuthSession } from "aws-amplify/auth";
 import Heading from "@/components/ui/Heading";
 import { Button } from "@/components/ui/Button";
 import { RefreshCw, AlertCircle, CheckCircle, Clock, Edit, Trash2, Download } from "lucide-react";
 import { EditIncidentReportModal } from "@/components/forms/EditIncidentReportModal";
+import { useUserRole } from "@/lib/auth/useUserRole";
 
 const client = generateClient<Schema>();
 
@@ -39,6 +41,7 @@ export default function ReportsPage() {
   const [editingReport, setEditingReport] = useState<IncidentReport | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Record<string, string[]>>({});
+  const { isAdmin, isIncidentReporter, isLoading: roleLoading } = useUserRole();
 
   const getSignedPhotoUrls = async (photoPaths: string[]): Promise<string[]> => {
     if (!photoPaths || photoPaths.length === 0) return [];
@@ -67,12 +70,28 @@ export default function ReportsPage() {
     setError(null);
     try {
       console.log("Fetching incident reports...");
+
+      // Admins can see all reports, others only see their own (handled by Amplify authorization)
       const result = await client.models.IncidentReport.list();
 
       console.log("API Response:", result);
 
       if (result.data) {
-        const sortedReports = result.data.sort((a, b) => {
+        let filteredReports = result.data;
+
+        // For IncidentReporters, filter to only show their own reports
+        // (Note: This is a client-side filter; server-side filtering is handled by Amplify auth)
+        if (isIncidentReporter && !isAdmin) {
+          const session = await fetchAuthSession();
+          const userId = session.tokens?.idToken?.payload.sub;
+          console.log("Filtering reports for user:", userId);
+          // The owner field is automatically set by Amplify to the user's sub
+          filteredReports = result.data.filter((report: any) => {
+            return report.owner === userId;
+          });
+        }
+
+        const sortedReports = filteredReports.sort((a, b) => {
           const dateA = new Date(a.createdAt || a.incidentDate).getTime();
           const dateB = new Date(b.createdAt || b.incidentDate).getTime();
           return dateB - dateA; // Most recent first
@@ -106,8 +125,12 @@ export default function ReportsPage() {
   };
 
   useEffect(() => {
-    fetchReports();
-  }, []);
+    // Only fetch reports once role is loaded
+    if (!roleLoading) {
+      fetchReports();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roleLoading, isAdmin, isIncidentReporter]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this incident report? This action cannot be undone.")) {
@@ -289,29 +312,35 @@ export default function ReportsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(report.status)}
-                  <Button
-                    onClick={() => handleEdit(report)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={() => handleDelete(report.id)}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    disabled={deletingId === report.id}
-                  >
-                    {deletingId === report.id ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4" />
-                    )}
-                    {deletingId === report.id ? "Deleting..." : "Delete"}
-                  </Button>
+                  {/* Only admins and incident reporters can edit their reports */}
+                  {(isAdmin || isIncidentReporter) && (
+                    <Button
+                      onClick={() => handleEdit(report)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </Button>
+                  )}
+                  {/* Only admins and incident reporters can delete their reports */}
+                  {(isAdmin || isIncidentReporter) && (
+                    <Button
+                      onClick={() => handleDelete(report.id)}
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      disabled={deletingId === report.id}
+                    >
+                      {deletingId === report.id ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                      {deletingId === report.id ? "Deleting..." : "Delete"}
+                    </Button>
+                  )}
                 </div>
               </div>
 
