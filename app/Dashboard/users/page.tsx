@@ -140,6 +140,11 @@ export default function UsersPage() {
 
   // Filter users based on role filter and company filter
   const filteredUsers = users.filter((user) => {
+    // Hide SuperAdmin users from non-SuperAdmin users
+    if (!isSuperAdmin && user.groups.includes("SuperAdmin")) {
+      return false;
+    }
+
     // Role filter
     if (roleFilter !== "all" && !user.groups.includes(roleFilter)) {
       return false;
@@ -161,12 +166,16 @@ export default function UsersPage() {
     return true;
   });
 
-  // Calculate role counts
-  const adminCount = users.filter((u) => u.groups.includes("Admin")).length;
-  const incidentReporterCount = users.filter((u) =>
+  // Calculate role counts (excluding SuperAdmins for non-SuperAdmin users)
+  const visibleUsers = isSuperAdmin
+    ? users
+    : users.filter((u) => !u.groups.includes("SuperAdmin"));
+
+  const adminCount = visibleUsers.filter((u) => u.groups.includes("Admin")).length;
+  const incidentReporterCount = visibleUsers.filter((u) =>
     u.groups.includes("IncidentReporter")
   ).length;
-  const customerCount = users.filter((u) =>
+  const customerCount = visibleUsers.filter((u) =>
     u.groups.includes("Customer")
   ).length;
 

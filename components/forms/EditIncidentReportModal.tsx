@@ -6,9 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { CalendarIcon, X, Upload, Trash2 } from "lucide-react";
-import { generateClient } from "aws-amplify/data";
 import { getUrl, uploadData, remove } from "aws-amplify/storage";
-import type { Schema } from "@/amplify/data/resource";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -34,8 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/Select";
-
-const client = generateClient<Schema>();
 
 const editIncidentReportSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -255,9 +251,8 @@ export function EditIncidentReportModal({
         ...newPhotoUrls
       ];
 
-      // Step 4: Update the report in DynamoDB
+      // Step 4: Update the report in DynamoDB via API
       const updateData = {
-        id: report.id,
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone.replace(/\D/g, ''),
@@ -274,15 +269,23 @@ export function EditIncidentReportModal({
         photoUrls: finalPhotoUrls,
       };
 
-      const result = await client.models.IncidentReport.update(updateData);
+      const response = await fetch(`/api/incident-reports/${report.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
 
-      if (result.data) {
+      const result = await response.json();
+
+      if (response.ok) {
         console.log("✅ Successfully updated incident report");
         onSuccess();
         onClose();
-      } else if (result.errors) {
-        console.error("❌ Error updating report:", result.errors);
-        alert(`Failed to update report: ${result.errors.map(e => e.message).join(", ")}`);
+      } else {
+        console.error("❌ Error updating report:", result.error);
+        alert(`Failed to update report: ${result.error}`);
       }
     } catch (error: any) {
       console.error("Error updating report:", error);

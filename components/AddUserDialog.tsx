@@ -39,21 +39,85 @@ export function AddUserDialog({
   const { companies } = useCompany();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<string>("Customer");
-  const [companyId, setCompanyId] = useState<string>("");
+  const [companyId, setCompanyId] = useState<string>("none");
   const [sendInvite, setSendInvite] = useState(true);
+  const [passwordOption, setPasswordOption] = useState<"auto" | "manual">("auto");
+  const [customPassword, setCustomPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Automatically set company to "none" when SuperAdmin role is selected
+  const handleRoleChange = (newRole: string) => {
+    setRole(newRole);
+    if (newRole === "SuperAdmin") {
+      setCompanyId("none");
+    }
+  };
+
+  // Reset form when dialog opens/closes
+  const resetForm = () => {
+    setEmail("");
+    setRole("Customer");
+    setCompanyId("none"); // Default to "none" for SuperAdmin compatibility
+    setSendInvite(true);
+    setPasswordOption("auto");
+    setCustomPassword("");
+    setError(null);
+  };
+
+  // Reset form when dialog closes
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      resetForm();
+    }
+    onOpenChange(newOpen);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validate custom password if manual option is selected
+    if (passwordOption === "manual") {
+      if (!customPassword || customPassword.length < 8) {
+        setError("Password must be at least 8 characters long");
+        return;
+      }
+      if (!/[A-Z]/.test(customPassword)) {
+        setError("Password must contain at least one uppercase letter");
+        return;
+      }
+      if (!/[a-z]/.test(customPassword)) {
+        setError("Password must contain at least one lowercase letter");
+        return;
+      }
+      if (!/[0-9]/.test(customPassword)) {
+        setError("Password must contain at least one number");
+        return;
+      }
+      if (!/[^A-Za-z0-9]/.test(customPassword)) {
+        setError("Password must contain at least one special character");
+        return;
+      }
+    }
+
+    // Validate company is selected for non-SuperAdmin roles when user is SuperAdmin
+    if (isSuperAdmin && role !== "SuperAdmin" && (!companyId || companyId === "none")) {
+      setError("Please select a company for this role");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Normalize email to lowercase for consistency
+      const normalizedEmail = email.toLowerCase().trim();
+
       // Determine which company to assign
-      const targetCompanyId = isSuperAdmin ? companyId : userCompanyId;
+      // Use empty string for "none" selection
+      const targetCompanyId = isSuperAdmin ? (companyId === "none" ? "" : companyId) : userCompanyId;
       const targetCompanyName = isSuperAdmin
-        ? companies.find(c => c.id === companyId)?.name
+        ? (companyId === "none" ? "" : companies.find(c => c.id === companyId)?.name)
         : userCompanyName;
 
       const response = await fetch("/api/admin/users/create", {
@@ -62,11 +126,12 @@ export function AddUserDialog({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
+          email: normalizedEmail,
           groups: [role],
           sendInvite,
           companyId: targetCompanyId,
           companyName: targetCompanyName,
+          temporaryPassword: passwordOption === "manual" ? customPassword : undefined,
         }),
       });
 
@@ -76,14 +141,8 @@ export function AddUserDialog({
         throw new Error(data.error || "Failed to create user");
       }
 
-      // Reset form
-      setEmail("");
-      setRole("Customer");
-      setCompanyId("");
-      setSendInvite(true);
-      setError(null);
-
-      // Close dialog and refresh user list
+      // Reset form and close dialog
+      resetForm();
       onOpenChange(false);
       onUserCreated();
     } catch (err: any) {
@@ -94,13 +153,13 @@ export function AddUserDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New User</DialogTitle>
           <DialogDescription>
-            Create a new user account and assign them a role. They will receive
-            an email invitation to set their password.
+            Create a new user account and assign them a role. You can either auto-generate
+            a temporary password or set a specific one.
           </DialogDescription>
         </DialogHeader>
 
@@ -124,11 +183,25 @@ export function AddUserDialog({
             {isSuperAdmin && (
               <div className="grid gap-2">
                 <Label htmlFor="company">Company</Label>
-                <Select value={companyId} onValueChange={setCompanyId} disabled={loading}>
+                <Select
+                  value={companyId}
+                  onValueChange={setCompanyId}
+                  disabled={loading || role === "SuperAdmin"}
+                >
                   <SelectTrigger id="company">
                     <SelectValue placeholder="Select a company" />
                   </SelectTrigger>
                   <SelectContent>
+                    {role === "SuperAdmin" && (
+                      <SelectItem value="none">
+                        <div className="flex flex-col">
+                          <span className="font-medium">None (Global Access)</span>
+                          <span className="text-xs text-gray-500">
+                            No company restriction
+                          </span>
+                        </div>
+                      </SelectItem>
+                    )}
                     {companies.map((company) => (
                       <SelectItem key={company.id} value={company.id}>
                         {company.name}
@@ -138,7 +211,7 @@ export function AddUserDialog({
                 </Select>
                 <p className="text-xs text-gray-500">
                   {role === "SuperAdmin"
-                    ? "Optional for SuperAdmins"
+                    ? "SuperAdmins have global access to all companies"
                     : "Required for all other roles"}
                 </p>
               </div>
@@ -147,7 +220,7 @@ export function AddUserDialog({
             {/* Role Field */}
             <div className="grid gap-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={setRole} disabled={loading}>
+              <Select value={role} onValueChange={handleRoleChange} disabled={loading}>
                 <SelectTrigger id="role">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -190,6 +263,53 @@ export function AddUserDialog({
               </Select>
             </div>
 
+            {/* Password Option */}
+            <div className="grid gap-2">
+              <Label>Password Setup</Label>
+              <Select value={passwordOption} onValueChange={(value: "auto" | "manual") => setPasswordOption(value)} disabled={loading}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">
+                    <div className="flex flex-col">
+                      <span className="font-medium">Auto-generate temporary password</span>
+                      <span className="text-xs text-gray-500">
+                        User must change at first login
+                      </span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="manual">
+                    <div className="flex flex-col">
+                      <span className="font-medium">Set specific password</span>
+                      <span className="text-xs text-gray-500">
+                        You provide the password
+                      </span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Custom Password Field (shown only when manual option is selected) */}
+            {passwordOption === "manual" && (
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter password (min 8 characters)"
+                  value={customPassword}
+                  onChange={(e) => setCustomPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+                <p className="text-xs text-gray-500">
+                  Must contain: uppercase, lowercase, number, and special character
+                </p>
+              </div>
+            )}
+
             {/* Send Invite Checkbox */}
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -221,7 +341,7 @@ export function AddUserDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={loading}
             >
               Cancel

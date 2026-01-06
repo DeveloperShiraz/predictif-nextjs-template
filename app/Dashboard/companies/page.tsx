@@ -34,6 +34,8 @@ import {
   RefreshCw,
   CheckCircle,
   XCircle,
+  Link as LinkIcon,
+  Copy,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -65,6 +67,7 @@ export default function CompaniesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [copiedCompanyId, setCopiedCompanyId] = useState<string | null>(null);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -229,6 +232,23 @@ export default function CompaniesPage() {
     setIsDeleteDialogOpen(true);
   };
 
+  const copyPublicLink = (companyId: string) => {
+    const baseUrl = window.location.origin;
+    const publicUrl = `${baseUrl}/public-form/${companyId}`;
+
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      setCopiedCompanyId(companyId);
+      setSuccess("Public form link copied to clipboard!");
+      setTimeout(() => {
+        setCopiedCompanyId(null);
+        setSuccess(null);
+      }, 3000);
+    }).catch((err) => {
+      console.error("Failed to copy link:", err);
+      setError("Failed to copy link to clipboard");
+    });
+  };
+
   if (roleLoading || companiesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -343,6 +363,31 @@ export default function CompaniesPage() {
                       {company.userCount || 0}
                       {company.maxUsers && ` / ${company.maxUsers}`}
                     </span>
+                  </div>
+
+                  {/* Public Form Link */}
+                  <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => copyPublicLink(company.id)}
+                    >
+                      {copiedCompanyId === company.id ? (
+                        <>
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Link Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Public Form Link
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                      Share this link for public incident reports
+                    </p>
                   </div>
 
                   {/* Created Date */}

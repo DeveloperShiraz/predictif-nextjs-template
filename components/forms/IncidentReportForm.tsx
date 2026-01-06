@@ -6,10 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { CalendarIcon, Upload, X, CheckCircle, AlertCircle } from "lucide-react";
-import { generateClient } from "aws-amplify/data";
 import { uploadData } from "aws-amplify/storage";
 import { fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
-import type { Schema } from "@/amplify/data/resource";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -30,33 +28,57 @@ import {
   PopoverTrigger,
 } from "@/components/ui/Popover";
 import { cn } from "@/lib/utils";
-
-const client = generateClient<Schema>();
+import { useUserRole } from "@/lib/auth/useUserRole";
 
 // Form validation schema
 const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required").regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens, and apostrophes"),
-  lastName: z.string().min(1, "Last name is required").regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens, and apostrophes"),
+  firstName: z.string()
+    .min(1, "First name is required")
+    .max(50, "First name must be 50 characters or less")
+    .regex(/^[a-zA-Z\s'-]+$/, "First name can only contain letters, spaces, hyphens, and apostrophes"),
+  lastName: z.string()
+    .min(1, "Last name is required")
+    .max(50, "Last name must be 50 characters or less")
+    .regex(/^[a-zA-Z\s'-]+$/, "Last name can only contain letters, spaces, hyphens, and apostrophes"),
   phone: z.string()
     .min(10, "Phone number must be at least 10 digits")
+    .max(20, "Phone number must be 20 characters or less")
     .regex(/^[\d\s\-\(\)\+\.]+$/, "Phone number can only contain digits, spaces, hyphens, parentheses, plus signs, and periods")
-    .transform((val) => val.replace(/\D/g, '')) // Remove non-digits for processing
-    .refine((val) => val.length >= 10, "Phone number must have at least 10 digits"),
-  email: z.string().email("Invalid email address"),
-  address: z.string().min(1, "Address is required"),
-  apartment: z.string().optional(),
-  city: z.string().min(1, "City is required").regex(/^[a-zA-Z\s'-]+$/, "City can only contain letters, spaces, hyphens, and apostrophes"),
-  state: z.string().min(2, "State is required").max(2, "State must be 2 characters").regex(/^[A-Z]{2}$/, "State must be 2 uppercase letters"),
+    .transform((val) => val.replace(/\D/g, ''))
+    .refine((val) => val.length >= 10 && val.length <= 15, "Phone number must be between 10 and 15 digits"),
+  email: z.string()
+    .min(1, "Email is required")
+    .max(100, "Email must be 100 characters or less")
+    .email("Invalid email address"),
+  address: z.string()
+    .min(1, "Street address is required")
+    .max(200, "Street address must be 200 characters or less"),
+  apartment: z.string()
+    .max(20, "Apartment/Suite must be 20 characters or less")
+    .optional(),
+  city: z.string()
+    .min(1, "City is required")
+    .max(100, "City must be 100 characters or less")
+    .regex(/^[a-zA-Z\s'-]+$/, "City can only contain letters, spaces, hyphens, and apostrophes"),
+  state: z.string()
+    .min(2, "State is required")
+    .max(2, "Use 2-letter state code")
+    .regex(/^[A-Z]{2}$/, "State must be 2 uppercase letters"),
   zip: z.string()
-    .min(5, "ZIP code must be at least 5 digits")
-    .regex(/^\d{5}(-\d{4})?$/, "ZIP code must be in format 12345 or 12345-6789"),
+    .regex(/^\d{5}(-\d{4})?$/, "Invalid ZIP code (use format: 12345 or 12345-6789)"),
   incidentDate: z.date({
-    required_error: "Date of incident is required",
-  }),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+    required_error: "Incident date is required",
+  }).refine((date) => date <= new Date(), "Incident date cannot be in the future"),
+  description: z.string()
+    .min(10, "Description must be at least 10 characters")
+    .max(2000, "Description must be 2000 characters or less"),
   shingleExposure: z.string()
     .optional()
-    .refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) > 0 && parseFloat(val) <= 12), "Shingle exposure must be between 0 and 12 inches"),
+    .refine((val) => {
+      if (!val || val === "") return true;
+      const num = parseFloat(val);
+      return !isNaN(num) && num >= 0 && num <= 100;
+    }, "Shingle exposure must be between 0 and 100 inches"),
   photos: z.array(z.instanceof(File)).optional(),
 });
 
@@ -66,7 +88,24 @@ interface FileWithPreview extends File {
   preview: string;
 }
 
-export function IncidentReportForm() {
+interface IncidentReportFormProps {
+  publicMode?: boolean;
+  companyId?: string;
+  companyName?: string;
+  onSuccess?: () => void;
+}
+
+export function IncidentReportForm({
+  publicMode = false,
+  companyId: propCompanyId,
+  companyName: propCompanyName,
+  onSuccess,
+}: IncidentReportFormProps = {}) {
+  const { companyId: userCompanyId, companyName: userCompanyName, userEmail } = useUserRole();
+
+  // Use prop values in public mode, otherwise use user values
+  const companyId = publicMode ? propCompanyId : userCompanyId;
+  const companyName = publicMode ? propCompanyName : userCompanyName;
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -125,41 +164,32 @@ export function IncidentReportForm() {
     try {
       console.log("=== FORM SUBMISSION START ===");
       console.log("Submitting form data:", data);
-      
-      // Verify authentication first
-      console.log("Checking authentication...");
+      console.log("Public mode:", publicMode);
+
+      // Verify authentication only if not in public mode
       let session;
       let currentUser;
-      try {
-        session = await fetchAuthSession();
-        currentUser = await getCurrentUser();
-        console.log("✅ Authentication verified:", {
-          hasAccessToken: !!session.tokens?.accessToken,
+      if (!publicMode) {
+        console.log("Checking authentication...");
+        try {
+          session = await fetchAuthSession();
+          currentUser = await getCurrentUser();
+          console.log("✅ Authentication verified:", {
+            hasAccessToken: !!session.tokens?.accessToken,
           userId: currentUser.userId,
           username: currentUser.username,
         });
-      } catch (authError) {
-        console.error("❌ Authentication check failed:", authError);
-        throw new Error("You must be signed in to submit an incident report. Please sign in and try again.");
+        } catch (authError) {
+          console.error("❌ Authentication check failed:", authError);
+          throw new Error("You must be signed in to submit an incident report. Please sign in and try again.");
+        }
+
+        if (!session?.tokens?.accessToken) {
+          throw new Error("No valid authentication token found. Please sign in and try again.");
+        }
       }
 
-      if (!session.tokens?.accessToken) {
-        throw new Error("No valid authentication token found. Please sign in and try again.");
-      }
-      
-      // Check if client and models are available
-      if (!client || !client.models) {
-        throw new Error("Amplify client not properly configured");
-      }
-      
-      if (!client.models.IncidentReport) {
-        throw new Error("IncidentReport model not found. Please deploy the schema first using 'npx ampx sandbox'");
-      }
-      
-      console.log("✅ Client and models available");
-      console.log("Available models:", Object.keys(client.models || {}));
-
-      // Prepare incident data without photos first
+      // Prepare incident data
       console.log("Preparing incident data...");
       const incidentData = {
         firstName: data.firstName,
@@ -174,96 +204,88 @@ export function IncidentReportForm() {
         incidentDate: data.incidentDate.toISOString().split('T')[0], // Convert to date string
         description: data.description,
         shingleExposure: data.shingleExposure ? parseFloat(data.shingleExposure) : undefined,
-        status: "submitted" as const,
-        submittedAt: new Date().toISOString(),
         photoUrls: [],
+        companyId: companyId || null,
+        companyName: companyName || null,
+        submittedBy: publicMode ? data.email : (userEmail || currentUser?.username),
       };
 
       console.log("Incident data to submit:", JSON.stringify(incidentData, null, 2));
 
-      // Create incident report
+      // Create incident report via API - use public endpoint if in public mode
       console.log("Calling API to create incident report...");
-      const result = await client.models.IncidentReport.create(incidentData);
+      const apiEndpoint = publicMode ? "/api/public/incident-reports" : "/api/incident-reports";
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(incidentData),
+      });
+
+      const result = await response.json();
 
       console.log("=== API RESPONSE ===");
-      console.log("Full result object:", result);
-      console.log("Result.data:", result.data);
-      console.log("Result.errors:", result.errors);
+      console.log("Response status:", response.status);
+      console.log("Response data:", result);
       console.log("===================");
 
-      if (result.data) {
-        console.log("✅ Success! Created incident report with ID:", result.data.id);
-        const reportId = result.data.id;
-
-        // Now upload photos with the report ID
-        let photoUrls: string[] = [];
-        if (files.length > 0) {
-          try {
-            console.log("Uploading photos for report:", reportId);
-            console.log("Number of files to upload:", files.length);
-            console.log("File details:", files.map(f => ({ name: f.name, type: f.type, size: f.size })));
-            photoUrls = await uploadPhotos(files, reportId);
-            console.log("✅ Photos uploaded successfully!");
-            console.log("Photo URLs:", photoUrls);
-
-            // Update report with photo URLs
-            console.log("Updating report with photo URLs...");
-            const updateResult = await client.models.IncidentReport.update({
-              id: reportId,
-              photoUrls: photoUrls,
-            });
-
-            if (updateResult.data) {
-              console.log("✅ Report updated with photos");
-            }
-          } catch (storageError: any) {
-            console.error("❌ Photo upload failed!");
-            console.error("Error type:", storageError?.constructor?.name);
-            console.error("Error message:", storageError?.message);
-            console.error("Error details:", storageError);
-            console.error("Full error object:", JSON.stringify(storageError, null, 2));
-          }
-        }
-
-        const successMessage = files.length > 0 && photoUrls.length === 0
-          ? "Incident report submitted successfully! (Photos could not be uploaded)"
-          : files.length > 0 && photoUrls.length > 0
-          ? `Incident report submitted successfully with ${photoUrls.length} photo(s)! ID: ${reportId}`
-          : `Incident report submitted successfully! ID: ${reportId}`;
-
-        showNotification('success', successMessage);
-        form.reset();
-        setFiles([]);
-      } else if (result.errors && result.errors.length > 0) {
-        console.error("❌ GraphQL errors:", result.errors);
-        const errorMessages = result.errors.map(e => {
-          console.error("Error details:", {
-            message: e.message,
-            errorType: e.errorType,
-            path: e.path,
-            locations: e.locations,
-          });
-          return e.message;
-        }).join(', ');
-        
-        // Check for DynamoDB ResourceNotFoundException
-        const isResourceNotFound = result.errors.some(e => 
-          e.errorType === 'DynamoDB:ResourceNotFoundException' || 
-          e.message?.includes('Requested resource not found')
-        );
-        
-        if (isResourceNotFound) {
-          throw new Error(
-            "DynamoDB table not found. Please ensure your Amplify sandbox is running. " +
-            "Run 'npx ampx sandbox' in a separate terminal to deploy your backend resources."
-          );
-        }
-        
-        throw new Error(`Failed to submit: ${errorMessages}`);
-      } else {
-        console.error("❌ No data and no errors returned - unexpected response");
-        throw new Error("Failed to create incident report - no data returned and no errors reported");
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create incident report");
       }
+
+      console.log("✅ Success! Created incident report with ID:", result.report?.id || result.reportId);
+      const reportId = result.report?.id || result.reportId;
+
+      // Now upload photos with the report ID
+      let photoUrls: string[] = [];
+      if (files.length > 0) {
+        try {
+          console.log("Uploading photos for report:", reportId);
+          console.log("Number of files to upload:", files.length);
+          console.log("File details:", files.map(f => ({ name: f.name, type: f.type, size: f.size })));
+          photoUrls = await uploadPhotos(files, reportId);
+          console.log("✅ Photos uploaded successfully!");
+          console.log("Photo URLs:", photoUrls);
+
+          // Update report with photo URLs via API
+          console.log("Updating report with photo URLs...");
+          const updateResponse = await fetch(`/api/incident-reports/${reportId}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ photoUrls }),
+          });
+
+          if (updateResponse.ok) {
+            console.log("✅ Report updated with photos");
+          }
+        } catch (storageError: any) {
+          console.error("❌ Photo upload failed!");
+          console.error("Error type:", storageError?.constructor?.name);
+          console.error("Error message:", storageError?.message);
+          console.error("Error details:", storageError);
+          console.error("Full error object:", JSON.stringify(storageError, null, 2));
+        }
+      }
+
+      const successMessage = files.length > 0 && photoUrls.length === 0
+        ? "Incident report submitted successfully! (Photos could not be uploaded)"
+        : files.length > 0 && photoUrls.length > 0
+        ? `Incident report submitted successfully with ${photoUrls.length} photo(s)! ID: ${reportId}`
+        : `Incident report submitted successfully! ID: ${reportId}`;
+
+      // Call onSuccess callback if provided (for public mode)
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        // Show notification if not in public mode
+        showNotification('success', successMessage);
+      }
+
+      form.reset();
+      setFiles([]);
     } catch (error: any) {
       console.error("=== ERROR DETAILS ===");
       console.error("Error type:", error?.constructor?.name);
@@ -271,7 +293,7 @@ export function IncidentReportForm() {
       console.error("Error stack:", error?.stack);
       console.error("Full error object:", error);
       console.error("====================");
-      
+
       const errorMessage = error?.message || String(error) || "Unknown error occurred";
       showNotification('error', `Error submitting incident report: ${errorMessage}. Please check the browser console for details.`);
     } finally {

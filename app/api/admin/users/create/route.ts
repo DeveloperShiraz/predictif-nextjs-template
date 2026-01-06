@@ -3,6 +3,7 @@ import {
   CognitoIdentityProviderClient,
   AdminCreateUserCommand,
   AdminAddUserToGroupCommand,
+  AdminSetUserPasswordCommand,
   MessageActionType,
 } from "@aws-sdk/client-cognito-identity-provider";
 
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { email, groups, sendInvite = true, companyId, companyName } = body;
+    const { email, groups, sendInvite = true, companyId, companyName, temporaryPassword } = body;
 
     if (!email) {
       return NextResponse.json(
@@ -36,6 +37,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Normalize email to lowercase to prevent duplicates with different cases
+    const normalizedEmail = email.toLowerCase().trim();
 
     // Validate groups
     const validGroups = ["SuperAdmin", "Admin", "IncidentReporter", "Customer"];
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
     const userAttributes = [
       {
         Name: "email",
-        Value: email,
+        Value: normalizedEmail,
       },
       {
         Name: "email_verified",
@@ -77,22 +81,35 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Create user
+    // Create user (use normalized email as username)
     const createUserCommand = new AdminCreateUserCommand({
       UserPoolId: USER_POOL_ID,
-      Username: email,
+      Username: normalizedEmail,
       UserAttributes: userAttributes,
       DesiredDeliveryMediums: sendInvite ? ["EMAIL"] : undefined,
       MessageAction: sendInvite ? undefined : MessageActionType.SUPPRESS,
+      TemporaryPassword: temporaryPassword, // Will be undefined if not provided (auto-generated)
     });
 
     const createUserResponse = await client.send(createUserCommand);
+
+    // If a custom password was provided, set it as permanent
+    if (temporaryPassword) {
+      const setPasswordCommand = new AdminSetUserPasswordCommand({
+        UserPoolId: USER_POOL_ID,
+        Username: normalizedEmail,
+        Password: temporaryPassword,
+        Permanent: true, // Make it permanent so user doesn't have to change it
+      });
+
+      await client.send(setPasswordCommand);
+    }
 
     // Add user to groups
     for (const group of userGroups) {
       const addToGroupCommand = new AdminAddUserToGroupCommand({
         UserPoolId: USER_POOL_ID,
-        Username: email,
+        Username: normalizedEmail,
         GroupName: group,
       });
 
@@ -103,7 +120,7 @@ export async function POST(request: NextRequest) {
       success: true,
       user: {
         username: createUserResponse.User?.Username,
-        email,
+        email: normalizedEmail,
         groups: userGroups,
         companyId: companyId || null,
         companyName: companyName || null,

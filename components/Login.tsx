@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn, fetchAuthSession, getCurrentUser } from "aws-amplify/auth";
+import { signIn, fetchAuthSession, getCurrentUser, signOut } from "aws-amplify/auth";
 import { UpdatePassword } from "@/components/UpdatePassword";
 import { ResetPassword } from "@/components/ResetPassword";
 import {
@@ -74,8 +74,11 @@ export default function LoginPage() {
     setAuthState("submitting");
 
     try {
+      // Normalize email to lowercase for case-insensitive login
+      const normalizedEmail = email.toLowerCase().trim();
+
       const { isSignedIn, nextStep } = await signIn({
-        username: email,
+        username: normalizedEmail,
         password,
       });
 
@@ -88,10 +91,30 @@ export default function LoginPage() {
         console.log("Login successful - redirecting to Dashboard");
         redirectToDashboard();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error signing in:", err);
-      setError(err instanceof Error ? err.message : "Failed to sign in");
-      setAuthState("unauthenticated");
+
+      // If there's already a signed in user, clear the session and try again
+      if (err.message && err.message.includes("already a signed in user")) {
+        console.log("Detected stale session, clearing and retrying...");
+        try {
+          await signOut();
+          // Clear storage
+          if (typeof window !== 'undefined') {
+            localStorage.clear();
+            sessionStorage.clear();
+          }
+          setError("Session cleared. Please try logging in again.");
+          setAuthState("unauthenticated");
+        } catch (signOutErr) {
+          console.error("Error clearing session:", signOutErr);
+          setError("Please refresh the page and try again.");
+          setAuthState("unauthenticated");
+        }
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to sign in");
+        setAuthState("unauthenticated");
+      }
     }
   };
 

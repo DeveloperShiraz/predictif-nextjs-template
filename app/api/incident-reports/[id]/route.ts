@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } from
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
 const docClient = DynamoDBDocumentClient.from(client);
-const TABLE_NAME = "Company-manual";
+const TABLE_NAME = "IncidentReport-manual";
 
 export async function GET(
   request: NextRequest,
@@ -21,14 +21,14 @@ export async function GET(
     const response = await docClient.send(command);
 
     if (!response.Item) {
-      return NextResponse.json({ error: "Company not found" }, { status: 404 });
+      return NextResponse.json({ error: "Incident report not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ company: response.Item });
+    return NextResponse.json({ report: response.Item });
   } catch (error: any) {
-    console.error("Error fetching company:", error);
+    console.error("Error fetching incident report:", error);
     return NextResponse.json(
-      { error: "Failed to fetch company", details: error.message },
+      { error: "Failed to fetch incident report", details: error.message },
       { status: 500 }
     );
   }
@@ -73,11 +73,11 @@ export async function PATCH(
 
     const response = await docClient.send(command);
 
-    return NextResponse.json({ company: response.Attributes });
+    return NextResponse.json({ report: response.Attributes });
   } catch (error: any) {
-    console.error("Error updating company:", error);
+    console.error("Error updating incident report:", error);
     return NextResponse.json(
-      { error: "Failed to update company", details: error.message },
+      { error: "Failed to update incident report", details: error.message },
       { status: 500 }
     );
   }
@@ -90,9 +90,6 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // TODO: Add validation to prevent deletion if company has users or reports
-    // You may want to implement soft deletion instead
-
     const command = new DeleteCommand({
       TableName: TABLE_NAME,
       Key: { id },
@@ -100,11 +97,11 @@ export async function DELETE(
 
     await docClient.send(command);
 
-    return NextResponse.json({ success: true, message: "Company deleted successfully" });
+    return NextResponse.json({ success: true, message: "Incident report deleted successfully" });
   } catch (error: any) {
-    console.error("Error deleting company:", error);
+    console.error("Error deleting incident report:", error);
     return NextResponse.json(
-      { error: "Failed to delete company", details: error.message },
+      { error: "Failed to delete incident report", details: error.message },
       { status: 500 }
     );
   }

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
 import { getUrl, remove } from "aws-amplify/storage";
 import { fetchAuthSession } from "aws-amplify/auth";
 import Heading from "@/components/ui/Heading";
@@ -10,8 +8,14 @@ import { Button } from "@/components/ui/Button";
 import { RefreshCw, AlertCircle, CheckCircle, Clock, Edit, Trash2, Download } from "lucide-react";
 import { EditIncidentReportModal } from "@/components/forms/EditIncidentReportModal";
 import { useUserRole } from "@/lib/auth/useUserRole";
-
-const client = generateClient<Schema>();
+import { useCompany } from "@/contexts/CompanyContext";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 
 interface IncidentReport {
   id: string;
@@ -32,16 +36,21 @@ interface IncidentReport {
   submittedAt?: string;
   createdAt: string;
   updatedAt: string;
+  companyId?: string | null;
+  companyName?: string | null;
 }
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<IncidentReport[]>([]);
+  const [filteredReports, setFilteredReports] = useState<IncidentReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingReport, setEditingReport] = useState<IncidentReport | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Record<string, string[]>>({});
-  const { isAdmin, isIncidentReporter, isLoading: roleLoading } = useUserRole();
+  const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<string>("all");
+  const { isAdmin, isIncidentReporter, isSuperAdmin, isLoading: roleLoading, companyId } = useUserRole();
+  const { companies } = useCompany();
 
   const getSignedPhotoUrls = async (photoPaths: string[]): Promise<string[]> => {
     if (!photoPaths || photoPaths.length === 0) return [];
@@ -71,51 +80,45 @@ export default function ReportsPage() {
     try {
       console.log("Fetching incident reports...");
 
-      // Admins can see all reports, others only see their own (handled by Amplify authorization)
-      const result = await client.models.IncidentReport.list();
+      const response = await fetch("/api/incident-reports");
+      const data = await response.json();
 
-      console.log("API Response:", result);
-
-      if (result.data) {
-        let filteredReports = result.data;
-
-        // For IncidentReporters, filter to only show their own reports
-        // (Note: This is a client-side filter; server-side filtering is handled by Amplify auth)
-        if (isIncidentReporter && !isAdmin) {
-          const session = await fetchAuthSession();
-          const userId = session.tokens?.idToken?.payload.sub;
-          console.log("Filtering reports for user:", userId);
-          // The owner field is automatically set by Amplify to the user's sub
-          filteredReports = result.data.filter((report: any) => {
-            return report.owner === userId;
-          });
-        }
-
-        const sortedReports = filteredReports.sort((a, b) => {
-          const dateA = new Date(a.createdAt || a.incidentDate).getTime();
-          const dateB = new Date(b.createdAt || b.incidentDate).getTime();
-          return dateB - dateA; // Most recent first
-        });
-        setReports(sortedReports as IncidentReport[]);
-        console.log(`✅ Loaded ${sortedReports.length} incident reports`);
-
-        // Fetch signed URLs for all photos
-        const urlsMap: Record<string, string[]> = {};
-        for (const report of sortedReports) {
-          if (report.photoUrls && report.photoUrls.length > 0) {
-            console.log(`Fetching signed URLs for report ${report.id}:`, report.photoUrls);
-            const validPaths = report.photoUrls.filter((path): path is string => path !== null && path !== undefined);
-            urlsMap[report.id] = await getSignedPhotoUrls(validPaths);
-            console.log(`✅ Got ${urlsMap[report.id].length} signed URLs`);
-          }
-        }
-        setPhotoUrlsMap(urlsMap);
-      } else if (result.errors) {
-        console.error("Errors fetching reports:", result.errors);
-        setError(result.errors.map(e => e.message).join(", "));
-      } else {
-        setError("No data returned from API");
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch incident reports");
       }
+
+      let allReports = data.reports || [];
+
+      // Sort by most recent first (submittedAt or createdAt)
+      allReports.sort((a: IncidentReport, b: IncidentReport) => {
+        const dateA = new Date(a.submittedAt || a.createdAt).getTime();
+        const dateB = new Date(b.submittedAt || b.createdAt).getTime();
+        return dateB - dateA; // Descending order (newest first)
+      });
+
+      // Apply authorization filtering:
+      // - SuperAdmins: Can view all reports across all companies
+      // - Admins: Can view reports within their assigned company only
+      // - IncidentReporters: Can view reports within their assigned company only
+      if (!isSuperAdmin && companyId) {
+        allReports = allReports.filter((report: IncidentReport) =>
+          report.companyId === companyId
+        );
+      }
+
+      setReports(allReports);
+      setFilteredReports(allReports);
+
+      // Get signed URLs for photos
+      const urlsMap: Record<string, string[]> = {};
+      for (const report of allReports) {
+        if (report.photoUrls && report.photoUrls.length > 0) {
+          urlsMap[report.id] = await getSignedPhotoUrls(report.photoUrls);
+        }
+      }
+      setPhotoUrlsMap(urlsMap);
+
+      console.log(`✅ Loaded ${allReports.length} incident reports`);
     } catch (err: any) {
       console.error("Error fetching reports:", err);
       setError(err?.message || "Failed to load incident reports");
@@ -131,6 +134,17 @@ export default function ReportsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleLoading, isAdmin, isIncidentReporter]);
+
+  // Apply company filter
+  useEffect(() => {
+    if (selectedCompanyFilter === "all") {
+      setFilteredReports(reports);
+    } else {
+      setFilteredReports(
+        reports.filter(report => report.companyId === selectedCompanyFilter)
+      );
+    }
+  }, [selectedCompanyFilter, reports]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this incident report? This action cannot be undone.")) {
@@ -159,16 +173,20 @@ export default function ReportsPage() {
         console.log("✅ All photos deleted from S3");
       }
 
-      // Delete the report from DynamoDB
-      const result = await client.models.IncidentReport.delete({ id });
+      // Delete the report from DynamoDB via API
+      const response = await fetch(`/api/incident-reports/${id}`, {
+        method: "DELETE",
+      });
 
-      if (result.data) {
+      const data = await response.json();
+
+      if (response.ok) {
         console.log("✅ Successfully deleted incident report from database");
         // Remove from local state
         setReports(reports.filter(report => report.id !== id));
-      } else if (result.errors) {
-        console.error("❌ Error deleting report:", result.errors);
-        alert(`Failed to delete report: ${result.errors.map(e => e.message).join(", ")}`);
+      } else {
+        console.error("❌ Error deleting report:", data.error);
+        alert(`Failed to delete report: ${data.error}`);
       }
     } catch (error: any) {
       console.error("Error deleting report:", error);
@@ -242,7 +260,23 @@ export default function ReportsPage() {
     }
   };
 
-  if (isLoading) {
+  // Authorization check: Only Admins, SuperAdmins, and IncidentReporters can view reports
+  if (!roleLoading && !isAdmin && !isIncidentReporter) {
+    return (
+      <div className="p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-gray-600">You don't have permission to view incident reports.</p>
+            <p className="text-sm text-gray-500 mt-2">Only Admins and Incident Reporters can access this page.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || roleLoading) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -257,14 +291,32 @@ export default function ReportsPage() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <Heading size="sm" className="text-[#000000]">
           Incident Reports
         </Heading>
-        <Button onClick={fetchReports} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Company Filter for SuperAdmin */}
+          {isSuperAdmin && companies.length > 0 && (
+            <Select value={selectedCompanyFilter} onValueChange={setSelectedCompanyFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by company" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Companies</SelectItem>
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <Button onClick={fetchReports} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {error && (
@@ -277,11 +329,15 @@ export default function ReportsPage() {
         </div>
       )}
 
-      {reports.length === 0 && !error && (
+      {filteredReports.length === 0 && !error && (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
           <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 font-medium mb-1">No incident reports found</p>
-          <p className="text-sm text-gray-500">Submit an incident report to see it here.</p>
+          <p className="text-sm text-gray-500">
+            {selectedCompanyFilter !== "all"
+              ? "No reports found for the selected company."
+              : "Submit an incident report to see it here."}
+          </p>
         </div>
       )}
 
@@ -294,9 +350,9 @@ export default function ReportsPage() {
         />
       )}
 
-      {reports.length > 0 && (
+      {filteredReports.length > 0 && (
         <div className="space-y-4">
-          {reports.map((report) => (
+          {filteredReports.map((report) => (
             <div
               key={report.id}
               className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -309,6 +365,12 @@ export default function ReportsPage() {
                   <p className="text-sm text-gray-600">
                     ID: <span className="font-mono text-xs">{report.id}</span>
                   </p>
+                  {/* Show company name for SuperAdmin */}
+                  {isSuperAdmin && report.companyName && (
+                    <p className="text-sm text-blue-600 font-medium mt-1">
+                      Company: {report.companyName}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(report.status)}

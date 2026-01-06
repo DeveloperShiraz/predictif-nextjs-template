@@ -69,7 +69,7 @@ export function useUserRole(): UseUserRoleReturn {
     role,
     isLoading,
     isSuperAdmin: role === "SuperAdmin",
-    isAdmin: role === "Admin",
+    isAdmin: role === "Admin" || role === "SuperAdmin",
     isIncidentReporter: role === "IncidentReporter",
     isCustomer: role === "Customer",
     userEmail,

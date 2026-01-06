@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/amplify-server-utils";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { randomUUID } from "crypto";
+
+const client = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const docClient = DynamoDBDocumentClient.from(client);
+const TABLE_NAME = "Company-manual";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("Fetching companies...");
+    console.log("Fetching companies from DynamoDB...");
 
-    const client = createServerClient();
-    const { data: companies, errors } = await client.models.Company.list();
+    const command = new ScanCommand({
+      TableName: TABLE_NAME,
+    });
 
-    if (errors) {
-      console.error("Error fetching companies:", JSON.stringify(errors, null, 2));
-      return NextResponse.json(
-        { error: "Failed to fetch companies", details: errors },
-        { status: 500 }
-      );
-    }
+    const response = await docClient.send(command);
+    const companies = response.Items || [];
 
-    console.log(`Found ${companies?.length || 0} companies`);
-    return NextResponse.json({ companies: companies || [] });
+    console.log(`Found ${companies.length} companies`);
+    return NextResponse.json({ companies });
   } catch (error: any) {
     console.error("Exception fetching companies:", error);
     console.error("Error stack:", error.stack);
@@ -40,8 +42,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = createServerClient();
-    const { data: company, errors } = await client.models.Company.create({
+    const company = {
+      id: randomUUID(),
       name,
       domain: domain || null,
       logoUrl: logoUrl || null,
@@ -49,16 +51,16 @@ export async function POST(request: NextRequest) {
       maxUsers: maxUsers || null,
       isActive: true,
       createdAt: new Date().toISOString(),
+    };
+
+    const command = new PutCommand({
+      TableName: TABLE_NAME,
+      Item: company,
     });
 
-    if (errors) {
-      console.error("Error creating company:", errors);
-      return NextResponse.json(
-        { error: "Failed to create company", details: errors },
-        { status: 500 }
-      );
-    }
+    await docClient.send(command);
 
+    console.log("Company created:", company.id);
     return NextResponse.json({ company }, { status: 201 });
   } catch (error: any) {
     console.error("Error creating company:", error);
