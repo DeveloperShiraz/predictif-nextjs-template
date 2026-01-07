@@ -36,14 +36,27 @@ backend.adminActions.resources.lambda.addToRolePolicy(
 
 // Grant the Next.js Compute Role permission to invoke this function
 const computeLambda = (backend as any).compute?.resources?.lambda;
+const computeLambdaFound = !!computeLambda;
+
 if (computeLambda) {
   backend.adminActions.resources.lambda.grantInvoke(computeLambda);
+
+  // Explicitly pass manual keys if they exist in the build environment
+  if (process.env.APP_AWS_ACCESS_KEY_ID) {
+    computeLambda.addEnvironment("APP_AWS_ACCESS_KEY_ID", process.env.APP_AWS_ACCESS_KEY_ID);
+  }
+  if (process.env.APP_AWS_SECRET_ACCESS_KEY) {
+    computeLambda.addEnvironment("APP_AWS_SECRET_ACCESS_KEY", process.env.APP_AWS_SECRET_ACCESS_KEY);
+  }
+  if (process.env.APP_AWS_SESSION_TOKEN) {
+    computeLambda.addEnvironment("APP_AWS_SESSION_TOKEN", process.env.APP_AWS_SESSION_TOKEN);
+  }
 }
 
 // Expose the function name and some debug flags to the application
 backend.addOutput({
   custom: {
     adminActionsFunctionName: backend.adminActions.resources.lambda.functionName,
-    debug_computeLambdaFound: !!computeLambda,
+    debug_computeLambdaFound: computeLambdaFound,
   },
 });

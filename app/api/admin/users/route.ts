@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { getCognitoClientConfig, getAdminActionsFunctionName } from "@/lib/aws-config";
+import { getCognitoClientConfig, getAdminActionsFunctionName, getDebugFlags } from "@/lib/aws-config";
 
 const lambdaClient = new LambdaClient(getCognitoClientConfig());
 const FUNCTION_NAME = getAdminActionsFunctionName();
@@ -11,12 +11,14 @@ export async function GET(request: NextRequest) {
     hasFunctionName: !!FUNCTION_NAME,
     region: getCognitoClientConfig().region,
     hasManualCredentials: !!getCognitoClientConfig().credentials,
+    debugFlags: getDebugFlags(),
     // Safely check for env vars without exposing secrets
     env: {
       hasAwsKey: !!process.env.AWS_ACCESS_KEY_ID,
       hasAwsSecret: !!process.env.AWS_SECRET_ACCESS_KEY,
       nodeEnv: process.env.NODE_ENV,
       lambdaName: process.env.AWS_LAMBDA_FUNCTION_NAME || "Not a Lambda",
+      hasAppKey: !!process.env.APP_AWS_ACCESS_KEY_ID,
     }
   };
 

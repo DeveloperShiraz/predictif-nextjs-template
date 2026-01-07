@@ -33,6 +33,10 @@ export const getAdminActionsFunctionName = () => {
   return (outputs as any).custom?.adminActionsFunctionName || process.env.ADMIN_ACTIONS_FUNCTION_NAME || "";
 };
 
+export const getDebugFlags = () => {
+  return (outputs as any).custom || {};
+};
+
 export const getAWSCredentials = () => {
   // 1. Check for manual overrides (User requested "APP_" prefix)
   // This is primarily for local development testing against a real AWS backend
