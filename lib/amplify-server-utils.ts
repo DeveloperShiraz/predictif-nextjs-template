@@ -10,14 +10,9 @@ export const { runWithAmplifyServerContext } = createServerRunner({
 
 // For use in Server Components - uses cookies-based authentication
 export async function createServerClient() {
-  const cookieStore = await cookies();
-
-  // Debug: Log available cookies
-  console.log("Available cookies:", cookieStore.getAll().map(c => c.name));
-
   return generateServerClientUsingCookies<Schema>({
     config: outputs,
-    cookies: cookieStore,
+    cookies,
   });
 }
 
