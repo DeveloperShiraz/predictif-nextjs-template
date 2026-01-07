@@ -101,7 +101,7 @@ const schema = a.schema({
     .query()
     .returns(a.ref("User").array())
     .handler(a.handler.function(adminActions))
-    .authorization((allow) => [allow.group("SuperAdmin")]),
+    .authorization((allow) => [allow.groups(["SuperAdmin", "Admin"])]),
 
   createUser: a
     .mutation()
@@ -114,7 +114,7 @@ const schema = a.schema({
     })
     .returns(a.ref("User"))
     .handler(a.handler.function(adminActions))
-    .authorization((allow) => [allow.group("SuperAdmin")]),
+    .authorization((allow) => [allow.groups(["SuperAdmin", "Admin"])]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
