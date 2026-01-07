@@ -78,6 +78,7 @@ interface IncidentReport {
   submittedAt?: string;
   createdAt: string;
   updatedAt: string;
+  submittedBy?: string;
 }
 
 interface EditIncidentReportModalProps {

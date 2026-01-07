@@ -39,6 +39,7 @@ interface IncidentReport {
   updatedAt: string;
   companyId?: string | null;
   companyName?: string | null;
+  submittedBy?: string;
 }
 
 export default function ReportsPage() {
