@@ -53,26 +53,22 @@ export const getAWSCredentials = () => {
   return undefined;
 };
 
-export const getCognitoClientConfig = () => {
-  return {
+const getBaseConfig = () => {
+  const config: any = {
     region: getAWSRegion(),
-    credentials: getAWSCredentials(),
   };
+  const credentials = getAWSCredentials();
+  if (credentials) {
+    config.credentials = credentials;
+  }
+  return config;
 };
 
-export const getDynamoDBClientConfig = () => {
-  return {
-    region: getAWSRegion(),
-    credentials: getAWSCredentials(),
-  };
-};
+export const getCognitoClientConfig = () => getBaseConfig();
 
-export const getS3ClientConfig = () => {
-  return {
-    region: getAWSRegion(),
-    credentials: getAWSCredentials(),
-  };
-};
+export const getDynamoDBClientConfig = () => getBaseConfig();
+
+export const getS3ClientConfig = () => getBaseConfig();
 
 /**
  * Get DynamoDB table name for Companies
