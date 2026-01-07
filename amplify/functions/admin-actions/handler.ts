@@ -35,10 +35,22 @@ export const handler = async (event: any) => {
             });
             const response = await client.send(command);
 
-            // AppSync expects the array directly if 'returns(a.ref("User").array())'
-            // Direct call expects { users: [] }
-            const users = response.Users || [];
-            return event.fieldName ? users : { users };
+            const mappedUsers = (response.Users || []).map((user: any) => {
+                const getAttr = (name: string) => user.Attributes?.find((a: any) => a.Name === name)?.Value;
+                return {
+                    username: user.Username,
+                    email: getAttr("email"),
+                    emailVerified: getAttr("email_verified") === "true",
+                    status: user.UserStatus,
+                    enabled: user.Enabled,
+                    createdAt: user.UserCreateDate?.toISOString(),
+                    groups: [], // Adding groups would require a separate call per user
+                    companyId: getAttr("custom:companyId"),
+                    companyName: getAttr("custom:companyName"),
+                };
+            });
+
+            return event.fieldName ? mappedUsers : { users: mappedUsers };
         }
 
         case "createUser": {
