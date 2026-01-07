@@ -1,77 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { getCognitoClientConfig, getAdminActionsFunctionName, getDebugFlags } from "@/lib/aws-config";
+import { generateServerClientUsingCookies } from "@aws-amplify/adapter-nextjs/data";
+import { cookies } from "next/headers";
+import outputs from "@/amplify_outputs.json";
+import { type Schema } from "@/amplify/data/resource";
 
-const lambdaClient = new LambdaClient(getCognitoClientConfig());
-const FUNCTION_NAME = getAdminActionsFunctionName();
+const client = generateServerClientUsingCookies<Schema>({
+  config: outputs,
+  cookies,
+});
 
 export async function GET(request: NextRequest) {
-  const debugInfo: any = {
-    functionName: FUNCTION_NAME,
-    hasFunctionName: !!FUNCTION_NAME,
-    region: getCognitoClientConfig().region,
-    hasManualCredentials: !!getCognitoClientConfig().credentials,
-    debugFlags: getDebugFlags(),
-    // Safely check for env vars without exposing secrets
-    env: {
-      hasAwsKey: !!process.env.AWS_ACCESS_KEY_ID,
-      hasAwsSecret: !!process.env.AWS_SECRET_ACCESS_KEY,
-      nodeEnv: process.env.NODE_ENV,
-      lambdaName: process.env.AWS_LAMBDA_FUNCTION_NAME || "Not a Lambda",
-      hasAppKey: !!process.env.APP_AWS_ACCESS_KEY_ID,
-    }
-  };
-
   try {
-    if (!FUNCTION_NAME) {
-      console.error("ADMIN_ACTIONS_FUNCTION_NAME not configured");
-      return NextResponse.json(
-        { error: "Admin Actions Function not configured", debug: debugInfo },
-        { status: 500 }
-      );
+    // Call the custom query in our Data API
+    const { data: users, errors } = await client.queries.listUsers();
+
+    if (errors) {
+      console.error("AppSync errors:", errors);
+      throw new Error(errors[0].message);
     }
 
-    // Call the admin-actions function to list users
-    const command = new InvokeCommand({
-      FunctionName: FUNCTION_NAME,
-      Payload: Buffer.from(JSON.stringify({
-        action: "listUsers",
-        payload: {}
-      })),
-    });
-
-    const response = await lambdaClient.send(command);
-    const result = JSON.parse(Buffer.from(response.Payload!).toString());
-
-    if (response.FunctionError) {
-      throw new Error(result.errorMessage || "Function execution failed");
-    }
-
-    const { users } = result;
-
-    // Process users and groups (now handled within the function or returned as is)
-    // The function already provides the users array.
-
-    const formattedUsers = users.map((user: any) => {
-      const username = user.Username || user.username;
-
-      const attributes = (user.Attributes || []).reduce((acc: any, attr: any) => {
-        acc[attr.Name] = attr.Value || "";
-        return acc;
-      }, {});
-
-      return {
-        username,
-        email: attributes.email || "",
-        emailVerified: attributes.email_verified === "true",
-        status: user.UserStatus,
-        enabled: user.Enabled,
-        createdAt: user.UserCreateDate ? new Date(user.UserCreateDate).toISOString() : user.createdAt,
-        groups: user.groups || [], // If function returns groups
-        companyId: attributes["custom:companyId"] || null,
-        companyName: attributes["custom:companyName"] || null,
-      };
-    });
+    const formattedUsers = (users || []).map((user: any) => ({
+      username: user.username,
+      email: user.email || "",
+      emailVerified: user.emailVerified || false,
+      status: user.status,
+      enabled: user.enabled,
+      createdAt: user.createdAt,
+      groups: user.groups || [],
+      companyId: user.companyId || null,
+      companyName: user.companyName || null,
+    }));
 
     return NextResponse.json({ users: formattedUsers });
   } catch (error: any) {
@@ -80,8 +38,7 @@ export async function GET(request: NextRequest) {
       {
         error: "Failed to list users",
         details: error.message,
-        code: error.name,
-        debug: debugInfo
+        code: error.name
       },
       { status: 500 }
     );

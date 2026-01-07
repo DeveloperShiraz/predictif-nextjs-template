@@ -1,100 +1,46 @@
+```typescript
 import { NextRequest, NextResponse } from "next/server";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
-import { getCognitoClientConfig, getAdminActionsFunctionName, getDebugFlags } from "@/lib/aws-config";
+import { generateServerClientUsingCookies } from "@aws-amplify/adapter-nextjs/data";
+import { cookies } from "next/headers";
+import outputs from "@/amplify_outputs.json";
+import { type Schema } from "@/amplify/data/resource";
 
-const lambdaClient = new LambdaClient(getCognitoClientConfig());
-const FUNCTION_NAME = getAdminActionsFunctionName();
+const client = generateServerClientUsingCookies<Schema>({
+  config: outputs,
+  cookies,
+});
 
 export async function POST(request: NextRequest) {
-  const debugInfo: any = {
-    functionName: FUNCTION_NAME,
-    hasFunctionName: !!FUNCTION_NAME,
-    region: getCognitoClientConfig().region,
-    hasManualCredentials: !!getCognitoClientConfig().credentials,
-    debugFlags: getDebugFlags(),
-    env: {
-      hasAwsKey: !!process.env.AWS_ACCESS_KEY_ID,
-      hasAwsSecret: !!process.env.AWS_SECRET_ACCESS_KEY,
-      nodeEnv: process.env.NODE_ENV,
-      lambdaName: process.env.AWS_LAMBDA_FUNCTION_NAME || "Not a Lambda",
-      hasAppKey: !!process.env.APP_AWS_ACCESS_KEY_ID,
-    }
-  };
-
   try {
-    if (!FUNCTION_NAME) {
-      console.error("ADMIN_ACTIONS_FUNCTION_NAME not configured");
-      return NextResponse.json(
-        { error: "Admin Actions Function not configured", debug: debugInfo },
-        { status: 500 }
-      );
-    }
+    const { email, password, group, companyId, companyName } = await request.json();
 
-    const body = await request.json();
-    const { email, groups, sendInvite = true, companyId, companyName, temporaryPassword } = body;
-
-    if (!email) {
+    if (!email || !password || !group) {
       return NextResponse.json(
-        { error: "Email is required" },
+        { error: "Email, password, and group are required" },
         { status: 400 }
       );
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Build user attributes
-    const userAttributes = [
-      { Name: "email", Value: normalizedEmail },
-      { Name: "email_verified", Value: "true" },
-    ];
-
-    if (companyId) {
-      userAttributes.push({ Name: "custom:companyId", Value: companyId });
-    }
-    if (companyName) {
-      userAttributes.push({ Name: "custom:companyName", Value: companyName });
-    }
-
-    // Call the admin-actions function to create user
-    const command = new InvokeCommand({
-      FunctionName: FUNCTION_NAME,
-      Payload: Buffer.from(JSON.stringify({
-        action: "createUser",
-        payload: {
-          email: normalizedEmail,
-          userAttributes,
-          sendInvite,
-          temporaryPassword,
-          groups: Array.isArray(groups) ? groups : [groups]
-        }
-      })),
+    // Call the custom mutation in our Data API
+    const { data: user, errors } = await client.queries.createUser({
+      email,
+      tempPassword: password,
+      group,
+      companyId,
+      companyName,
     });
 
-    const response = await lambdaClient.send(command);
-    const result = JSON.parse(Buffer.from(response.Payload!).toString());
-
-    if (response.FunctionError) {
-      // If the function returned an error, check if it's a known exception
-      const errorDetail = result.errorMessage || result.details || "Function execution failed";
-
-      if (result.errorType === "UsernameExistsException" || errorDetail.includes("already exists")) {
-        return NextResponse.json(
-          { error: "User with this email already exists" },
-          { status: 409 }
-        );
-      }
-
-      throw new Error(errorDetail);
+    if (errors) {
+      console.error("AppSync errors:", errors);
+      throw new Error(errors[0].message);
     }
 
     return NextResponse.json({
       success: true,
       user: {
-        username: normalizedEmail,
-        email: normalizedEmail,
-        groups: Array.isArray(groups) ? groups : [groups],
-        companyId: companyId || null,
-        companyName: companyName || null,
+        username: user?.username,
+        email: user?.email,
+        status: user?.status,
       },
     });
   } catch (error: any) {

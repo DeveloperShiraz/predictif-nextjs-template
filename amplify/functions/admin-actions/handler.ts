@@ -14,14 +14,19 @@ interface AdminActionEvent {
 
 const client = new CognitoIdentityProviderClient({});
 
-export const handler = async (event: AdminActionEvent) => {
+export const handler = async (event: any) => {
     const userPoolId = process.env.AMPLIFY_AUTH_USERPOOL_ID;
 
     if (!userPoolId) {
         throw new Error("AMPLIFY_AUTH_USERPOOL_ID is not set");
     }
 
-    const { action, payload } = event;
+    // Determine the action (Direct Lambda call uses 'action', AppSync uses 'fieldName')
+    const action = event.action || event.fieldName;
+    // AppSync passes arguments in 'arguments', direct call uses 'payload'
+    const payload = event.payload || event.arguments || {};
+
+    console.log(`Executing admin action: ${action}`, { hasPayload: !!payload });
 
     switch (action) {
         case "listUsers": {
@@ -29,39 +34,50 @@ export const handler = async (event: AdminActionEvent) => {
                 UserPoolId: userPoolId,
             });
             const response = await client.send(command);
-            return { users: response.Users || [] };
+
+            // AppSync expects the array directly if 'returns(a.ref("User").array())'
+            // Direct call expects { users: [] }
+            const users = response.Users || [];
+            return event.fieldName ? users : { users };
         }
 
         case "createUser": {
             const {
                 email,
-                userAttributes,
-                sendInvite,
-                temporaryPassword,
-                groups
+                tempPassword,
+                group,
+                companyId,
+                companyName
             } = payload;
+
+            const userAttributes = [
+                { Name: "email", Value: email },
+                { Name: "email_verified", Value: "true" },
+            ];
+
+            if (companyId) userAttributes.push({ Name: "custom:companyId", Value: companyId });
+            if (companyName) userAttributes.push({ Name: "custom:companyName", Value: companyName });
 
             const createCommand = new AdminCreateUserCommand({
                 UserPoolId: userPoolId,
                 Username: email,
                 UserAttributes: userAttributes,
-                DesiredDeliveryMediums: sendInvite ? ["EMAIL"] : undefined,
-                MessageAction: sendInvite ? undefined : MessageActionType.SUPPRESS,
-                TemporaryPassword: temporaryPassword,
+                MessageAction: MessageActionType.SUPPRESS,
+                TemporaryPassword: tempPassword,
             });
 
             const response = await client.send(createCommand);
 
-            if (temporaryPassword) {
+            if (tempPassword) {
                 await client.send(new AdminSetUserPasswordCommand({
                     UserPoolId: userPoolId,
                     Username: email,
-                    Password: temporaryPassword,
+                    Password: tempPassword,
                     Permanent: true,
                 }));
             }
 
-            for (const group of (groups || [])) {
+            if (group) {
                 await client.send(new AdminAddUserToGroupCommand({
                     UserPoolId: userPoolId,
                     Username: email,
@@ -69,7 +85,19 @@ export const handler = async (event: AdminActionEvent) => {
                 }));
             }
 
-            return { success: true, user: response.User };
+            const resultUser = {
+                username: response.User?.Username,
+                email: email,
+                emailVerified: true,
+                status: response.User?.UserStatus,
+                enabled: response.User?.Enabled,
+                createdAt: response.User?.Attributes?.find(a => a.Name === "sub") ? new Date().toISOString() : undefined, // Placeholder or sub
+                groups: group ? [group] : [],
+                companyId,
+                companyName
+            };
+
+            return event.fieldName ? resultUser : { success: true, user: resultUser };
         }
 
         default:

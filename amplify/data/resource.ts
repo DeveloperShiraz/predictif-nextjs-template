@@ -81,6 +81,39 @@ const schema = a.schema({
       // Allow public submission (unauthenticated users)
       allow.guest().to(["create"]),
     ]),
+
+  // User Type for the custom queries
+  User: a.customType({
+    username: a.string().required(),
+    email: a.string(),
+    emailVerified: a.boolean(),
+    status: a.string(),
+    enabled: a.boolean(),
+    createdAt: a.datetime(),
+    groups: a.string().array(),
+    companyId: a.string(),
+    companyName: a.string(),
+  }),
+
+  // Custom queries to list and create users using the adminActions function
+  listUsers: a
+    .query()
+    .returns(a.ref("User").array())
+    .handler(a.handler.function("adminActions"))
+    .authorization((allow) => [allow.group("SuperAdmin")]),
+
+  createUser: a
+    .mutation()
+    .arguments({
+      email: a.string().required(),
+      tempPassword: a.string().required(),
+      group: a.string().required(),
+      companyId: a.string(),
+      companyName: a.string(),
+    })
+    .returns(a.ref("User"))
+    .handler(a.handler.function("adminActions"))
+    .authorization((allow) => [allow.group("SuperAdmin")]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
