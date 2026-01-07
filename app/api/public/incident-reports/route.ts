@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = createServerClient();
+    const client = await createServerClient();
 
     // Fetch company to validate it exists and is active
     const { data: company, errors: companyErrors } = await client.models.Company.get({ id: companyId });

@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log("Fetching companies from Amplify Data...");
 
-    const client = createServerClient();
+    const client = await createServerClient();
     const { data: companies, errors } = await client.models.Company.list();
 
     if (errors) {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = createServerClient();
+    const client = await createServerClient();
 
     const { data: company, errors } = await client.models.Company.create({
       name,

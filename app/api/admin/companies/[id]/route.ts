@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const client = createServerClient();
+    const client = await createServerClient();
     const { data: company, errors } = await client.models.Company.get({ id });
 
     if (errors) {
@@ -48,7 +48,7 @@ export async function PATCH(
       );
     }
 
-    const client = createServerClient();
+    const client = await createServerClient();
 
     // Remove id from body if present
     const { id: _, ...updateData } = body;
@@ -86,7 +86,7 @@ export async function DELETE(
     // TODO: Add validation to prevent deletion if company has users or reports
     // You may want to implement soft deletion instead
 
-    const client = createServerClient();
+    const client = await createServerClient();
     const { errors } = await client.models.Company.delete({ id });
 
     if (errors) {

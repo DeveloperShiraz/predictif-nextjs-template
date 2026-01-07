@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log("Fetching incident reports from Amplify Data...");
 
-    const client = createServerClient();
+    const client = await createServerClient();
     const { data: reports, errors } = await client.models.IncidentReport.list();
 
     if (errors) {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const client = createServerClient();
+    const client = await createServerClient();
 
     const { data: report, errors } = await client.models.IncidentReport.create({
       claimNumber,

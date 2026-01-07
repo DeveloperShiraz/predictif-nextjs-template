@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const client = createServerClient();
+    const client = await createServerClient();
     const { data: report, errors } = await client.models.IncidentReport.get({ id });
 
     if (errors) {
@@ -48,7 +48,7 @@ export async function PATCH(
       );
     }
 
-    const client = createServerClient();
+    const client = await createServerClient();
 
     // Remove id from body if present
     const { id: _, ...updateData } = body;
@@ -83,7 +83,7 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const client = createServerClient();
+    const client = await createServerClient();
     const { errors } = await client.models.IncidentReport.delete({ id });
 
     if (errors) {
