@@ -35,7 +35,19 @@ backend.adminActions.resources.lambda.addToRolePolicy(
 );
 
 // Grant the Next.js Compute Role permission to invoke this function
-const computeLambda = (backend as any).compute?.resources?.lambda;
+let computeLambda = (backend as any).compute?.resources?.lambda;
+
+// Diagnostic: Try to find "Compute" in the CDK tree if the property is missing
+if (!computeLambda) {
+  try {
+    const stack = (backend.auth.resources.cfnResources.cfnUserPool as any).stack;
+    const computeNode = stack?.node?.tryFindChild("Compute") as any;
+    computeLambda = computeNode?.resources?.lambda;
+  } catch (e) {
+    // Silent catch
+  }
+}
+
 const computeLambdaFound = !!computeLambda;
 
 if (computeLambda) {
@@ -58,5 +70,6 @@ backend.addOutput({
   custom: {
     adminActionsFunctionName: backend.adminActions.resources.lambda.functionName,
     debug_computeLambdaFound: computeLambdaFound,
+    debug_backendKeys: Object.keys(backend).join(", "),
   },
 });
