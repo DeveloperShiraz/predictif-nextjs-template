@@ -13,6 +13,12 @@ const backend = defineBackend({
 
 const { cfnUserPool } = backend.auth.resources.cfnResources;
 
+// Pass the User Pool ID to the admin actions function
+backend.adminActions.resources.lambda.addEnvironment(
+  "AMPLIFY_AUTH_USERPOOL_ID",
+  cfnUserPool.ref
+);
+
 // Grant the adminActions function permissions to manage the Cognito User Pool
 backend.adminActions.resources.lambda.addToRolePolicy(
   new (await import("aws-cdk-lib/aws-iam")).PolicyStatement({
