@@ -22,12 +22,13 @@ export const auth = defineAuth({
   //   },
   // },
   userAttributes: {
-    /** request additional attributes for your app's users */
-    // profilePicture: {
-    //   mutable: true,
-    //   required: false,
-    // },
-    // Note: Custom attributes (custom:companyId, custom:companyName) must be added
-    // after initial deployment using scripts/add-cognito-attributes.ts
+    "custom:companyId": {
+      dataType: "String",
+      mutable: true,
+    },
+    "custom:companyName": {
+      dataType: "String",
+      mutable: true,
+    },
   },
 });
