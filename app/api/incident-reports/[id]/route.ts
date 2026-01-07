@@ -1,105 +1,123 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/amplify-server-utils";
+import { runWithAmplifyServerContext, createApiClient } from "@/lib/amplify-server-utils";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const response = NextResponse.next();
+  return await runWithAmplifyServerContext({
+    nextServerContext: { request, response },
+    operation: async (contextSpec) => {
+      try {
+        const { id } = await params;
 
-    const client = await createServerClient();
-    const { data: report, errors } = await client.models.IncidentReport.get({ id });
+        const client = createApiClient(contextSpec);
+        const { data: report, errors } = await client.models.IncidentReport.get(contextSpec, { id });
 
-    if (errors) {
-      console.error("Errors fetching incident report:", errors);
-      return NextResponse.json(
-        { error: "Failed to fetch incident report", details: errors },
-        { status: 500 }
-      );
-    }
+        if (errors) {
+          console.error("Errors fetching incident report:", errors);
+          return NextResponse.json(
+            { error: "Failed to fetch incident report", details: errors },
+            { status: 500 }
+          );
+        }
 
-    if (!report) {
-      return NextResponse.json({ error: "Incident report not found" }, { status: 404 });
-    }
+        if (!report) {
+          return NextResponse.json({ error: "Incident report not found" }, { status: 404 });
+        }
 
-    return NextResponse.json({ report });
-  } catch (error: any) {
-    console.error("Error fetching incident report:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch incident report", details: error.message },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json({ report });
+      } catch (error: any) {
+        console.error("Error fetching incident report:", error);
+        return NextResponse.json(
+          { error: "Failed to fetch incident report", details: error.message },
+          { status: 500 }
+        );
+      }
+    },
+  });
 }
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
-    const body = await request.json();
+  const response = NextResponse.next();
+  return await runWithAmplifyServerContext({
+    nextServerContext: { request, response },
+    operation: async (contextSpec) => {
+      try {
+        const { id } = await params;
+        const body = await request.json();
 
-    if (Object.keys(body).filter(key => key !== "id").length === 0) {
-      return NextResponse.json(
-        { error: "No fields to update" },
-        { status: 400 }
-      );
-    }
+        if (Object.keys(body).filter(key => key !== "id").length === 0) {
+          return NextResponse.json(
+            { error: "No fields to update" },
+            { status: 400 }
+          );
+        }
 
-    const client = await createServerClient();
+        const client = createApiClient(contextSpec);
 
-    // Remove id from body if present
-    const { id: _, ...updateData } = body;
+        // Remove id from body if present
+        const { id: _, ...updateData } = body;
 
-    const { data: report, errors } = await client.models.IncidentReport.update({
-      id,
-      ...updateData,
-    });
+        const { data: report, errors } = await client.models.IncidentReport.update(contextSpec, {
+          id,
+          ...updateData,
+        });
 
-    if (errors) {
-      console.error("Errors updating incident report:", errors);
-      return NextResponse.json(
-        { error: "Failed to update incident report", details: errors },
-        { status: 500 }
-      );
-    }
+        if (errors) {
+          console.error("Errors updating incident report:", errors);
+          return NextResponse.json(
+            { error: "Failed to update incident report", details: errors },
+            { status: 500 }
+          );
+        }
 
-    return NextResponse.json({ report });
-  } catch (error: any) {
-    console.error("Error updating incident report:", error);
-    return NextResponse.json(
-      { error: "Failed to update incident report", details: error.message },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json({ report });
+      } catch (error: any) {
+        console.error("Error updating incident report:", error);
+        return NextResponse.json(
+          { error: "Failed to update incident report", details: error.message },
+          { status: 500 }
+        );
+      }
+    },
+  });
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params;
+  const response = NextResponse.next();
+  return await runWithAmplifyServerContext({
+    nextServerContext: { request, response },
+    operation: async (contextSpec) => {
+      try {
+        const { id } = await params;
 
-    const client = await createServerClient();
-    const { errors } = await client.models.IncidentReport.delete({ id });
+        const client = createApiClient(contextSpec);
+        const { errors } = await client.models.IncidentReport.delete(contextSpec, { id }, { selectionSet: ['id'] });
 
-    if (errors) {
-      console.error("Errors deleting incident report:", errors);
-      return NextResponse.json(
-        { error: "Failed to delete incident report", details: errors },
-        { status: 500 }
-      );
-    }
+        if (errors) {
+          console.error("Errors deleting incident report:", errors);
+          return NextResponse.json(
+            { error: "Failed to delete incident report", details: errors },
+            { status: 500 }
+          );
+        }
 
-    return NextResponse.json({ success: true, message: "Incident report deleted successfully" });
-  } catch (error: any) {
-    console.error("Error deleting incident report:", error);
-    return NextResponse.json(
-      { error: "Failed to delete incident report", details: error.message },
-      { status: 500 }
-    );
-  }
+        return NextResponse.json({ success: true, message: "Incident report deleted successfully" });
+      } catch (error: any) {
+        console.error("Error deleting incident report:", error);
+        return NextResponse.json(
+          { error: "Failed to delete incident report", details: error.message },
+          { status: 500 }
+        );
+      }
+    },
+  });
 }

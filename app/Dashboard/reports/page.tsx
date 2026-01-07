@@ -50,7 +50,7 @@ export default function ReportsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Record<string, string[]>>({});
   const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<string>("all");
-  const { isAdmin, isIncidentReporter, isSuperAdmin, isLoading: roleLoading, companyId } = useUserRole();
+  const { isAdmin, isIncidentReporter, isSuperAdmin, isLoading: roleLoading, companyId, userEmail } = useUserRole();
   const { companies } = useCompany();
 
   const getSignedPhotoUrls = async (photoPaths: string[]): Promise<string[]> => {
@@ -100,11 +100,15 @@ export default function ReportsPage() {
       // Apply authorization filtering:
       // - SuperAdmins: Can view all reports across all companies
       // - Admins: Can view reports within their assigned company only
-      // - IncidentReporters: Can view reports within their assigned company only
+      // - IncidentReporters: Can view reports within their assigned company OR reports they submitted
       if (!isSuperAdmin && companyId) {
-        allReports = allReports.filter((report: IncidentReport) =>
-          report.companyId === companyId
-        );
+        allReports = allReports.filter((report: IncidentReport) => {
+          // Allow if report belongs to user's company
+          if (report.companyId === companyId) return true;
+          // Allow if user submitted the report (fallback for missing companyId)
+          if (userEmail && report.submittedBy === userEmail) return true;
+          return false;
+        });
       }
 
       setReports(allReports);
@@ -212,7 +216,7 @@ export default function ReportsPage() {
 
   const getStatusBadge = (status?: string) => {
     if (!status) return null;
-    
+
     const statusConfig = {
       submitted: { icon: Clock, color: "bg-blue-100 text-blue-800", label: "Submitted" },
       in_review: { icon: AlertCircle, color: "bg-yellow-100 text-yellow-800", label: "In Review" },

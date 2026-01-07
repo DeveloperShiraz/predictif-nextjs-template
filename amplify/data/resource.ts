@@ -29,6 +29,7 @@ const schema = a.schema({
       isActive: a.boolean().default(true),
       createdAt: a.datetime(),
       maxUsers: a.integer(),
+      updatedAt: a.datetime(),
       // Removed hasMany relationship to allow optional companyId in IncidentReport
     })
     .authorization((allow) => [
@@ -38,6 +39,8 @@ const schema = a.schema({
       allow.groups(["Admin", "IncidentReporter", "Customer"]).to(["read"]),
       // Temporary: allow any authenticated user to read (for debugging)
       allow.authenticated().to(["read"]),
+      // Allow public access for the public form (unauthenticated users)
+      allow.guest().to(["read"]), // Guests need to read company details to validate the form
     ]),
 
   IncidentReport: a
@@ -62,6 +65,8 @@ const schema = a.schema({
       status: a.enum(["submitted", "in_review", "resolved"]),
       submittedAt: a.datetime(),
       submittedBy: a.string(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
     })
     .authorization((allow) => [
       // SuperAdmins can do everything across all companies
@@ -69,10 +74,12 @@ const schema = a.schema({
       // Admins can do everything within their company
       allow.group("Admin"),
       // IncidentReporters can create and manage their own reports
-      allow.group("IncidentReporter").to(["create"]),
+      allow.group("IncidentReporter").to(["create", "read", "update"]),
       allow.owner().to(["read", "update", "delete"]),
       // Customers can only read reports
       allow.group("Customer").to(["read"]),
+      // Allow public submission (unauthenticated users)
+      allow.guest().to(["create"]),
     ]),
 });
 
