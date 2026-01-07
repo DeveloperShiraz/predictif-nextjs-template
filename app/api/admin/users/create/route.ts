@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Call the custom mutation in our Data API
-    const { data: user, errors } = await client.queries.createUser({
+    const { data: user, errors } = await client.mutations.createUser({
       email,
       tempPassword: password,
       group,
