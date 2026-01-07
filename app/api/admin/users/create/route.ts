@@ -11,11 +11,16 @@ const client = generateServerClientUsingCookies<Schema>({
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, group, companyId, companyName } = await request.json();
+    const body = await request.json();
+    const { email, password, temporaryPassword, group, groups, companyId, companyName } = body;
 
-    if (!email || !password || !group) {
+    // Extract the primary group and password from multiple possible keys
+    const targetGroup = group || (groups && groups.length > 0 ? groups[0] : null);
+    const targetPassword = password || temporaryPassword;
+
+    if (!email || !targetGroup) {
       return NextResponse.json(
-        { error: "Email, password, and group are required" },
+        { error: "Email and group (or groups) are required" },
         { status: 400 }
       );
     }
@@ -23,8 +28,8 @@ export async function POST(request: NextRequest) {
     // Call the custom mutation in our Data API
     const { data: user, errors } = await client.mutations.createUser({
       email,
-      tempPassword: password,
-      group,
+      tempPassword: targetPassword,
+      group: targetGroup,
       companyId,
       companyName,
     });

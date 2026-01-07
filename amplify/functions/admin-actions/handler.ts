@@ -4,6 +4,7 @@ import {
     AdminCreateUserCommand,
     AdminAddUserToGroupCommand,
     AdminSetUserPasswordCommand,
+    AdminListGroupsForUserCommand,
     MessageActionType,
 } from "@aws-sdk/client-cognito-identity-provider";
 
@@ -35,8 +36,21 @@ export const handler = async (event: any) => {
             });
             const response = await client.send(command);
 
-            const mappedUsers = (response.Users || []).map((user: any) => {
+            const mappedUsers = await Promise.all((response.Users || []).map(async (user: any) => {
                 const getAttr = (name: string) => user.Attributes?.find((a: any) => a.Name === name)?.Value;
+
+                // Fetch groups for this user
+                let groups: string[] = [];
+                try {
+                    const groupResponse = await client.send(new AdminListGroupsForUserCommand({
+                        UserPoolId: userPoolId,
+                        Username: user.Username
+                    }));
+                    groups = groupResponse.Groups?.map(g => g.GroupName!).filter(Boolean) || [];
+                } catch (groupError) {
+                    console.error(`Error fetching groups for user ${user.Username}:`, groupError);
+                }
+
                 return {
                     username: user.Username,
                     email: getAttr("email"),
@@ -44,11 +58,11 @@ export const handler = async (event: any) => {
                     status: user.UserStatus,
                     enabled: user.Enabled,
                     createdAt: user.UserCreateDate?.toISOString(),
-                    groups: [], // Adding groups would require a separate call per user
+                    groups: groups,
                     companyId: getAttr("custom:companyId"),
                     companyName: getAttr("custom:companyName"),
                 };
-            });
+            }));
 
             return event.fieldName ? mappedUsers : { users: mappedUsers };
         }
@@ -70,22 +84,26 @@ export const handler = async (event: any) => {
             if (companyId) userAttributes.push({ Name: "custom:companyId", Value: companyId });
             if (companyName) userAttributes.push({ Name: "custom:companyName", Value: companyName });
 
+            // Ensure we have a temporary password
+            const actualTempPassword = tempPassword || `Temp${Math.random().toString(36).slice(-8)}!`;
+
             const createCommand = new AdminCreateUserCommand({
                 UserPoolId: userPoolId,
                 Username: email,
                 UserAttributes: userAttributes,
                 MessageAction: MessageActionType.SUPPRESS,
-                TemporaryPassword: tempPassword,
+                TemporaryPassword: actualTempPassword,
             });
 
             const response = await client.send(createCommand);
 
-            if (tempPassword) {
+            if (actualTempPassword) {
                 await client.send(new AdminSetUserPasswordCommand({
                     UserPoolId: userPoolId,
                     Username: email,
-                    Password: tempPassword,
-                    Permanent: true,
+                    Password: actualTempPassword,
+                    Permanent: false, // Keep it temporary so they have to change it, or permanent if specified? 
+                    // Manual creation usually implies "FORCE_CHANGE_PASSWORD" unless permanent is set.
                 }));
             }
 
@@ -103,7 +121,7 @@ export const handler = async (event: any) => {
                 emailVerified: true,
                 status: response.User?.UserStatus,
                 enabled: response.User?.Enabled,
-                createdAt: response.User?.Attributes?.find(a => a.Name === "sub") ? new Date().toISOString() : undefined, // Placeholder or sub
+                createdAt: new Date().toISOString(),
                 groups: group ? [group] : [],
                 companyId,
                 companyName
