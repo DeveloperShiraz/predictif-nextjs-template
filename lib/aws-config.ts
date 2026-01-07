@@ -30,15 +30,26 @@ export const getUserPoolId = () => {
 };
 
 export const getAWSCredentials = () => {
-  // In production (Amplify), credentials are provided automatically via IAM roles
-  // Only use explicit credentials for local development if really needed and not provided by sandbox
+  // 1. Check for manual overrides (User requested "APP_" prefix)
+  if (process.env.APP_AWS_ACCESS_KEY_ID && process.env.APP_AWS_SECRET_ACCESS_KEY) {
+    return {
+      accessKeyId: process.env.APP_AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.APP_AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.APP_AWS_SESSION_TOKEN,
+    };
+  }
+
+  // 2. Check for standard environment variables (Local use or explicitly set in console)
+  // IMPORTANT: Must include sessionToken if present (required for IAM Role / Temporary Creds)
   if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     return {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN,
     };
   }
-  // Return undefined to use default credential provider chain (IAM roles in production)
+
+  // 3. Return undefined to allow SDK's default provider chain (EC2/Lambda Instance Profile etc.)
   return undefined;
 };
 
