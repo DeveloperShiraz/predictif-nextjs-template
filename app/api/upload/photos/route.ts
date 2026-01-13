@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Upload to S3
+    console.log(`Uploading to bucket: ${BUCKET_NAME}, path: ${path}`);
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: path,
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
     });
 
     await s3Client.send(command);
+    console.log(`Successfully uploaded: ${path}`);
 
     return NextResponse.json({
       success: true,
@@ -42,7 +44,11 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Error uploading photo to S3:", error);
     return NextResponse.json(
-      { error: "Failed to upload photo", details: error.message },
+      {
+        error: "Failed to upload photo",
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

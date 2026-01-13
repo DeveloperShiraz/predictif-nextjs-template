@@ -126,7 +126,7 @@ export function IncidentReportForm({
     type: 'success' | 'error';
     message: string;
   } | null>(null);
-  const [companies, setCompanies] = useState<Array<{id: string, name: string}>>([]);
+  const [companies, setCompanies] = useState<Array<{ id: string, name: string }>>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(false);
 
   const showNotification = (type: 'success' | 'error', message: string) => {
@@ -222,6 +222,9 @@ export function IncidentReportForm({
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
+    let createdReportId: string | null = null;
+    let finalPhotoUrls: string[] = [];
+
     try {
       console.log("=== FORM SUBMISSION START ===");
       console.log("Submitting form data:", data);
@@ -235,142 +238,93 @@ export function IncidentReportForm({
       }
 
       // Verify authentication only if not in public mode
-      let session;
       let currentUser;
       if (!publicMode) {
         console.log("Checking authentication...");
         try {
-          session = await fetchAuthSession();
+          await fetchAuthSession();
           currentUser = await getCurrentUser();
-          console.log("✅ Authentication verified:", {
-            hasAccessToken: !!session.tokens?.accessToken,
-          userId: currentUser.userId,
-          username: currentUser.username,
-        });
+          console.log("✅ Authentication verified");
         } catch (authError) {
           console.error("❌ Authentication check failed:", authError);
           throw new Error("You must be signed in to submit an incident report. Please sign in and try again.");
         }
-
-        if (!session?.tokens?.accessToken) {
-          throw new Error("No valid authentication token found. Please sign in and try again.");
-        }
       }
-
-      // Prepare incident data
-      console.log("Preparing incident data...");
 
       // Determine company ID and name based on context
       let finalCompanyId: string | null;
       let finalCompanyName: string | null;
 
       if (publicMode) {
-        // Public mode: use company from shareable link
         finalCompanyId = propCompanyId || null;
         finalCompanyName = propCompanyName || null;
       } else if (isSuperAdmin && data.companyId) {
-        // SuperAdmin: use selected company from dropdown
         finalCompanyId = data.companyId;
         const selectedCompany = companies.find(c => c.id === data.companyId);
         finalCompanyName = selectedCompany?.name || null;
       } else {
-        // Regular users: use their assigned company
         finalCompanyId = userCompanyId || null;
         finalCompanyName = userCompanyName || null;
       }
 
+      // 1. Upload photos first (if any)
+      if (files.length > 0) {
+        try {
+          console.log("Uploading photos before report creation...");
+          finalPhotoUrls = await uploadPhotos(files, data.claimNumber, finalCompanyName || "UnknownCompany");
+          console.log("✅ Photos uploaded successfully! URLs:", finalPhotoUrls);
+        } catch (storageError: any) {
+          console.error("❌ Photo upload failed during pre-submission phase!");
+          showNotification('error', "Photos could not be uploaded, but we will try to submit the report anyway.");
+        }
+      }
+
+      // 2. Create incident report with photo URLs included
       const incidentData = {
         claimNumber: data.claimNumber,
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone.replace(/\D/g, ''), // Store only digits
+        phone: data.phone.replace(/\D/g, ''),
         email: data.email,
         address: data.address,
         apartment: data.apartment || "",
         city: data.city,
         state: data.state,
         zip: data.zip,
-        incidentDate: data.incidentDate.toISOString().split('T')[0], // Convert to date string
+        incidentDate: data.incidentDate.toISOString().split('T')[0],
         description: data.description,
         shingleExposure: data.shingleExposure ? parseFloat(data.shingleExposure) : undefined,
-        photoUrls: [],
+        photoUrls: finalPhotoUrls,
         companyId: finalCompanyId,
         companyName: finalCompanyName,
         submittedBy: publicMode ? data.email : (userEmail || currentUser?.username),
       };
 
-      console.log("Incident data to submit:", JSON.stringify(incidentData, null, 2));
-
-      // Create incident report via API - use public endpoint if in public mode
       console.log("Calling API to create incident report...");
       const apiEndpoint = publicMode ? "/api/public/incident-reports" : "/api/incident-reports";
       const response = await fetch(apiEndpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(incidentData),
       });
 
       const result = await response.json();
-
-      console.log("=== API RESPONSE ===");
-      console.log("Response status:", response.status);
-      console.log("Response data:", result);
-      console.log("===================");
-
       if (!response.ok) {
         throw new Error(result.error || "Failed to create incident report");
       }
 
-      console.log("✅ Success! Created incident report with ID:", result.report?.id || result.reportId);
-      const reportId = result.report?.id || result.reportId;
+      createdReportId = result.report?.id || result.reportId;
+      console.log("✅ Success! Created incident report with ID:", createdReportId);
 
-      // Now upload photos with the report ID
-      let photoUrls: string[] = [];
-      if (files.length > 0) {
-        try {
-          console.log("Uploading photos for claim:", data.claimNumber);
-          console.log("Company:", finalCompanyName);
-          console.log("Number of files to upload:", files.length);
-          console.log("File details:", files.map(f => ({ name: f.name, type: f.type, size: f.size })));
-          photoUrls = await uploadPhotos(files, data.claimNumber, finalCompanyName || "UnknownCompany");
-          console.log("✅ Photos uploaded successfully!");
-          console.log("Photo URLs:", photoUrls);
-
-          // Update report with photo URLs via API
-          console.log("Updating report with photo URLs...");
-          const updateResponse = await fetch(`/api/incident-reports/${reportId}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ photoUrls }),
-          });
-
-          if (updateResponse.ok) {
-            console.log("✅ Report updated with photos");
-          }
-        } catch (storageError: any) {
-          console.error("❌ Photo upload failed!");
-          console.error("Error type:", storageError?.constructor?.name);
-          console.error("Error message:", storageError?.message);
-          console.error("Error details:", storageError);
-          console.error("Full error object:", JSON.stringify(storageError, null, 2));
-        }
-      }
-
-      const successMessage = files.length > 0 && photoUrls.length === 0
+      const successMessage = files.length > 0 && finalPhotoUrls.length === 0
         ? "Incident report submitted successfully! (Photos could not be uploaded)"
-        : files.length > 0 && photoUrls.length > 0
-        ? `Incident report submitted successfully with ${photoUrls.length} photo(s)! ID: ${reportId}`
-        : `Incident report submitted successfully! ID: ${reportId}`;
+        : files.length > 0 && finalPhotoUrls.length > 0
+          ? `Incident report submitted successfully with ${finalPhotoUrls.length} photo(s)!`
+          : `Incident report submitted successfully!`;
 
-      // Call onSuccess callback if provided (for public mode)
       if (onSuccess) {
         onSuccess();
       } else {
-        // Show notification if not in public mode
         showNotification('success', successMessage);
       }
 
@@ -378,12 +332,7 @@ export function IncidentReportForm({
       setFiles([]);
     } catch (error: any) {
       console.error("=== ERROR DETAILS ===");
-      console.error("Error type:", error?.constructor?.name);
-      console.error("Error message:", error?.message);
-      console.error("Error stack:", error?.stack);
-      console.error("Full error object:", error);
-      console.error("====================");
-
+      console.error(error);
       const errorMessage = error?.message || String(error) || "Unknown error occurred";
       showNotification('error', `Error submitting incident report: ${errorMessage}. Please check the browser console for details.`);
     } finally {
@@ -395,7 +344,7 @@ export function IncidentReportForm({
   const formatPhoneNumber = (value: string) => {
     // Remove all non-digits
     const phoneNumber = value.replace(/\D/g, '');
-    
+
     // Format as (XXX) XXX-XXXX
     if (phoneNumber.length >= 6) {
       return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
@@ -408,7 +357,7 @@ export function IncidentReportForm({
 
   const handleFiles = (fileList: FileList) => {
     const validFiles: FileWithPreview[] = [];
-    
+
     Array.from(fileList).forEach((file) => {
       // Check file type
       if (file.type === "image/jpeg" || file.type === "image/png") {
@@ -443,7 +392,7 @@ export function IncidentReportForm({
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -452,7 +401,7 @@ export function IncidentReportForm({
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Incident Report Form</h1>
-      
+
       {/* Toast Notification */}
       {notification && (
         <div
@@ -477,7 +426,7 @@ export function IncidentReportForm({
           </button>
         </div>
       )}
-      
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Company Selection - Only for SuperAdmin */}
@@ -578,8 +527,8 @@ export function IncidentReportForm({
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="(555) 123-4567" 
+                    <Input
+                      placeholder="(555) 123-4567"
                       value={field.value}
                       onChange={(e) => {
                         const formatted = formatPhoneNumber(e.target.value);
@@ -663,8 +612,8 @@ export function IncidentReportForm({
                 <FormItem>
                   <FormLabel>State</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="CA" 
+                    <Input
+                      placeholder="CA"
                       value={field.value}
                       onChange={(e) => {
                         const value = e.target.value.toUpperCase().slice(0, 2);
@@ -684,8 +633,8 @@ export function IncidentReportForm({
                 <FormItem>
                   <FormLabel>ZIP Code</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="12345" 
+                    <Input
+                      placeholder="12345"
                       value={field.value}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, '').slice(0, 5);
@@ -801,7 +750,7 @@ export function IncidentReportForm({
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Upload Photos
             </label>
-            
+
             <div
               className={cn(
                 "border-2 border-dashed rounded-lg p-6 text-center transition-colors",

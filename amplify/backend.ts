@@ -40,9 +40,18 @@ backend.adminActions.resources.lambda.addToRolePolicy(
   })
 );
 
-// Expose the function name to the application via amplify_outputs.json
+// Grant the server-side (Compute) role permission to upload to S3
+// This is required for the public-to-server-to-S3 proxy in /api/upload/photos
+const stack = (backend.storage.resources.bucket as any).stack;
+const computeRole = stack.node.findAll().find((n: any) => n.id === 'Compute' || n.id === 'ComputeRole');
+if (computeRole) {
+  backend.storage.resources.bucket.grantWrite(computeRole);
+}
+
+// Expose the function name and bucket ARN to the application via amplify_outputs.json
 backend.addOutput({
   custom: {
     adminActionsFunctionName: backend.adminActions.resources.lambda.functionName,
+    storageBucketArn: backend.storage.resources.bucket.bucketArn,
   },
 });
