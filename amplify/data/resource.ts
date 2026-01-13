@@ -119,6 +119,15 @@ const schema = a.schema({
     .returns(a.ref("User"))
     .handler(a.handler.function(adminActions))
     .authorization((allow) => [allow.groups(["SuperAdmin", "Admin"])]),
+
+  deleteUser: a
+    .mutation()
+    .arguments({
+      username: a.string().required(),
+    })
+    .returns(a.ref("User"))
+    .handler(a.handler.function(adminActions))
+    .authorization((allow) => [allow.groups(["SuperAdmin", "Admin"])]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

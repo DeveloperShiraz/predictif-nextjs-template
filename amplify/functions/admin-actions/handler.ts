@@ -5,11 +5,12 @@ import {
     AdminAddUserToGroupCommand,
     AdminSetUserPasswordCommand,
     AdminListGroupsForUserCommand,
+    AdminDeleteUserCommand,
     MessageActionType,
 } from "@aws-sdk/client-cognito-identity-provider";
 
 interface AdminActionEvent {
-    action: "listUsers" | "createUser";
+    action: "listUsers" | "createUser" | "deleteUser";
     payload: any;
 }
 
@@ -31,12 +32,17 @@ export const handler = async (event: any) => {
 
     switch (action) {
         case "listUsers": {
+            const identity = event.identity;
+            const callerGroups = identity?.groups || [];
+            const isSuperAdmin = callerGroups.includes("SuperAdmin");
+            const callerCompanyId = identity?.claims?.["custom:companyId"];
+
             const command = new ListUsersCommand({
                 UserPoolId: userPoolId,
             });
             const response = await client.send(command);
 
-            const mappedUsers = await Promise.all((response.Users || []).map(async (user: any) => {
+            const allUsers = await Promise.all((response.Users || []).map(async (user: any) => {
                 const getAttr = (name: string) => user.Attributes?.find((a: any) => a.Name === name)?.Value;
 
                 // Fetch groups for this user
@@ -64,7 +70,12 @@ export const handler = async (event: any) => {
                 };
             }));
 
-            return event.fieldName ? mappedUsers : { users: mappedUsers };
+            // Filter users if not SuperAdmin
+            const filteredUsers = isSuperAdmin
+                ? allUsers
+                : allUsers.filter(u => u.companyId === callerCompanyId);
+
+            return event.fieldName ? filteredUsers : { users: filteredUsers };
         }
 
         case "createUser": {
@@ -72,17 +83,33 @@ export const handler = async (event: any) => {
                 email,
                 tempPassword,
                 group,
-                companyId,
-                companyName
+                companyId: providedCompanyId,
+                companyName: providedCompanyName
             } = payload;
+
+            const identity = event.identity;
+            const callerGroups = identity?.groups || [];
+            const isSuperAdmin = callerGroups.includes("SuperAdmin");
+            const callerCompanyId = identity?.claims?.["custom:companyId"];
+            const callerCompanyName = identity?.claims?.["custom:companyName"];
+
+            // Enforce companyId for Admins
+            let finalCompanyId = providedCompanyId;
+            let finalCompanyName = providedCompanyName;
+
+            if (!isSuperAdmin) {
+                if (!callerCompanyId) throw new Error("Unauthorized: Admin has no associated company");
+                finalCompanyId = callerCompanyId;
+                finalCompanyName = callerCompanyName || providedCompanyName;
+            }
 
             const userAttributes = [
                 { Name: "email", Value: email },
                 { Name: "email_verified", Value: "true" },
             ];
 
-            if (companyId) userAttributes.push({ Name: "custom:companyId", Value: companyId });
-            if (companyName) userAttributes.push({ Name: "custom:companyName", Value: companyName });
+            if (finalCompanyId) userAttributes.push({ Name: "custom:companyId", Value: finalCompanyId });
+            if (finalCompanyName) userAttributes.push({ Name: "custom:companyName", Value: finalCompanyName });
 
             // Ensure we have a temporary password
             const actualTempPassword = tempPassword || `Temp${Math.random().toString(36).slice(-8)}!`;
@@ -102,8 +129,7 @@ export const handler = async (event: any) => {
                     UserPoolId: userPoolId,
                     Username: email,
                     Password: actualTempPassword,
-                    Permanent: false, // Keep it temporary so they have to change it, or permanent if specified? 
-                    // Manual creation usually implies "FORCE_CHANGE_PASSWORD" unless permanent is set.
+                    Permanent: false,
                 }));
             }
 
@@ -123,11 +149,50 @@ export const handler = async (event: any) => {
                 enabled: response.User?.Enabled,
                 createdAt: new Date().toISOString(),
                 groups: group ? [group] : [],
-                companyId,
-                companyName
+                companyId: finalCompanyId,
+                companyName: finalCompanyName
             };
 
             return event.fieldName ? resultUser : { success: true, user: resultUser };
+        }
+
+        case "deleteUser": {
+            const { username } = payload;
+            if (!username) throw new Error("Username is required for deleteUser");
+
+            // Multi-tenancy check: Admins can only delete users in their company
+            const identity = event.identity;
+            const callerGroups = identity?.groups || [];
+            const isSuperAdmin = callerGroups.includes("SuperAdmin");
+            const isAdmin = callerGroups.includes("Admin");
+
+            if (!isSuperAdmin && isAdmin) {
+                const callerCompanyId = identity?.claims?.["custom:companyId"];
+                if (!callerCompanyId) throw new Error("Unauthorized: Admin has no associated company");
+
+                // Fetch target user to check companyId
+                const { AdminGetUserCommand } = await import("@aws-sdk/client-cognito-identity-provider");
+                const targetUser = await client.send(new AdminGetUserCommand({
+                    UserPoolId: userPoolId,
+                    Username: username,
+                }));
+
+                const targetCompanyId = targetUser.UserAttributes?.find(a => a.Name === "custom:companyId")?.Value;
+                if (targetCompanyId !== callerCompanyId) {
+                    throw new Error("Unauthorized: Cannot delete user from a different company");
+                }
+            } else if (!isSuperAdmin) {
+                throw new Error("Unauthorized: Insufficient permissions to delete users");
+            }
+
+            console.log(`Deleting user ${username} from User Pool ${userPoolId}`);
+
+            await client.send(new AdminDeleteUserCommand({
+                UserPoolId: userPoolId,
+                Username: username,
+            }));
+
+            return { username };
         }
 
         default:
