@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        const client = createApiClient(contextSpec, 'identityPool');
+        const client = createApiClient(contextSpec, 'apiKey');
 
         // Fetch company to validate it exists and is active
         const { data: company, errors: companyErrors } = await client.models.Company.get(contextSpec, { id: companyId }, {

@@ -41,7 +41,9 @@ const schema = a.schema({
       // Temporary: allow any authenticated user to read (for debugging)
       allow.authenticated().to(["read"]),
       // Allow public access for the public form (unauthenticated users)
-      allow.guest().to(["read"]), // Guests need to read company details to validate the form
+      allow.guest().to(["read"]),
+      // Allow API Key access for reliably loading company info on public links
+      allow.publicApiKey().to(["read"]),
     ]),
 
   IncidentReport: a
@@ -81,6 +83,8 @@ const schema = a.schema({
       allow.group("Customer").to(["read"]),
       // Allow public submission (unauthenticated users)
       allow.guest().to(["create"]),
+      // Allow API Key access for universal public submission (works while logged in)
+      allow.publicApiKey().to(["create"]),
     ]),
 
   // User Type for the custom queries

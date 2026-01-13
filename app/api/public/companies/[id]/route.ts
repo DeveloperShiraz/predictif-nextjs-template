@@ -17,8 +17,8 @@ export async function GET(
             try {
                 const { id } = await params;
 
-                // Use 'identityPool' auth mode to allow guest access as configured in schema
-                const client = createApiClient(contextSpec, 'identityPool');
+                // Use 'apiKey' auth mode to allow universal access (authenticated or guest)
+                const client = createApiClient(contextSpec, 'apiKey');
 
                 const { data: company, errors } = await client.models.Company.get(contextSpec, { id }, {
                     selectionSet: ['id', 'name', 'logoUrl', 'isActive'],
