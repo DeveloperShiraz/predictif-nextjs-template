@@ -59,13 +59,16 @@ if (computeRole) {
     new (await import("aws-cdk-lib/aws-iam")).PolicyStatement({
       sid: "AllowReadAIOutput",
       actions: ["s3:GetObject"],
-      resources: ["arn:aws:s3:::roof-inspection-poc-output/*"],
+      resources: ["arn:aws:s3:::roof-inspection-poc-output", "arn:aws:s3:::roof-inspection-poc-output/*"],
     })
   );
 
-  console.log("Successfully granted S3 write access and AI output read access to Compute role");
+  console.log("✅ Successfully granted S3 write access and AI output read access to Compute role");
 } else {
-  console.warn("Could not find Compute role to grant S3 permissions");
+  // CRITICAL: Fail the build if we can't find the compute role. 
+  // This ensures we don't deploy a broken backend that can't access the images.
+  console.error("❌ FATAL: Could not find Compute role to grant S3 permissions.");
+  throw new Error("Could not find Compute role to grant S3 permissions");
 }
 
 // Expose the function name and bucket ARN to the application via amplify_outputs.json

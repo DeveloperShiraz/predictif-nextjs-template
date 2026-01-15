@@ -119,8 +119,9 @@ export async function POST(
                         const uriToLocalKeyMap = new Map<string, string>();
                         const s3Client = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
 
+                        const copyErrors: any[] = [];
                         for (const outputS3Uri of Array.from(uniqueOutputUris)) {
-                            // Parse s3://bucket/key
+                            // ... (parsing logic)
                             const uriParts = outputS3Uri.replace("s3://", "").split("/");
                             const sourceBucket = uriParts.shift();
                             const sourceKey = uriParts.join("/");
@@ -136,8 +137,7 @@ export async function POST(
                                     });
                                     const sourceObj = await s3Client.send(getCommand);
 
-                                    // Upload to our storage bucket with a unique name
-                                    // Use a hash or timestamp + index to ensure uniqueness if multiple images
+                                    // Upload to our storage bucket
                                     const uniqueSuffix = Math.random().toString(36).substring(7);
                                     const targetKey = `incident-photos/${report.id}/analyzed-${Date.now()}-${uniqueSuffix}.jpeg`;
 
@@ -154,24 +154,31 @@ export async function POST(
                                     await upload.done();
                                     console.log("✅ Analyzed image copied to:", targetKey);
                                     uriToLocalKeyMap.set(outputS3Uri, targetKey);
-                                } catch (innerCopyError) {
+                                } catch (innerCopyError: any) {
                                     console.error(`❌ Failed to copy image ${outputS3Uri}:`, innerCopyError);
+                                    copyErrors.push({ uri: outputS3Uri, error: innerCopyError.message, name: innerCopyError.name });
                                 }
                             }
                         }
 
-                        // 3. Update detections with the correct local path
+                        // ... (update detections logic uses uriToLocalKeyMap)
+
+                        // Attach copy errors to analysis data for visibility if needed, or just log
+                        if (copyErrors.length > 0) {
+                            (analysisData as any).copy_warnings = copyErrors;
+                        }
+
+                        // 3. Update detections with the correct local path (unchanged)
                         analysisData.detections = analysisData.detections.map((d: any) => ({
                             ...d,
                             local_output_path: d.output_s3_uri ? uriToLocalKeyMap.get(d.output_s3_uri) : undefined
                         }));
 
-                        // Also add a top-level summary of paths for easier access if needed
+                        // Also add a top-level summary of paths
                         (analysisData as any).all_local_paths = Array.from(uriToLocalKeyMap.values());
 
-                    } catch (copyError) {
-                        console.error("❌ Failed to process analyzed images:", copyError);
-                        // Continue saving the analysis data even if image copy fails
+                    } catch (copyError) { // Outermost catch for the block
+                        // ...
                     }
                 }
 
