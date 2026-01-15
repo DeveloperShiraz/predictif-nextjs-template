@@ -54,7 +54,7 @@ export default function ReportsPage() {
   const [analyzingId, setAnalyzingId] = useState<string | null>(null);
   const [photoUrlsMap, setPhotoUrlsMap] = useState<Record<string, string[]>>({});
   const [selectedCompanyFilter, setSelectedCompanyFilter] = useState<string>("all");
-  const { isAdmin, isIncidentReporter, isSuperAdmin, isLoading: roleLoading, companyId, userEmail } = useUserRole();
+  const { isAdmin, isIncidentReporter, isSuperAdmin, isCustomer, isLoading: roleLoading, companyId, userEmail } = useUserRole();
   const { companies } = useCompany();
 
   const getSignedPhotoUrls = async (photoPaths: string[]): Promise<string[]> => {
@@ -105,12 +105,21 @@ export default function ReportsPage() {
       // - SuperAdmins: Can view all reports across all companies
       // - Admins: Can view reports within their assigned company only
       // - IncidentReporters: Can view reports within their assigned company OR reports they submitted
-      if (!isSuperAdmin && companyId) {
+      // - Customers: Can ONLY view reports where the email matches their account email
+
+      if (!isSuperAdmin) {
         allReports = allReports.filter((report: IncidentReport) => {
-          // Allow if report belongs to user's company
-          if (report.companyId === companyId) return true;
-          // Allow if user submitted the report (fallback for missing companyId)
+          // 1. Customer Rule: Strict email match
+          if (isCustomer) {
+            return userEmail && report.email === userEmail;
+          }
+
+          // 2. Admin/IncidentReporter Rule: Company match
+          if (companyId && report.companyId === companyId) return true;
+
+          // 3. Fallback: Creator match
           if (userEmail && report.submittedBy === userEmail) return true;
+
           return false;
         });
       }
@@ -299,8 +308,8 @@ export default function ReportsPage() {
     }
   };
 
-  // Authorization check: Only Admins, SuperAdmins, and IncidentReporters can view reports
-  if (!roleLoading && !isAdmin && !isIncidentReporter) {
+  // Authorization check: Only Admins, SuperAdmins, IncidentReporters AND Customers can view reports
+  if (!roleLoading && !isAdmin && !isIncidentReporter && !isCustomer) {
     return (
       <div className="p-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -308,7 +317,6 @@ export default function ReportsPage() {
             <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" />
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
             <p className="text-gray-600">You don't have permission to view incident reports.</p>
-            <p className="text-sm text-gray-500 mt-2">Only Admins and Incident Reporters can access this page.</p>
           </div>
         </div>
       </div>
