@@ -66,12 +66,22 @@ if (computeRole) {
 
   console.log("✅ Successfully granted S3 write access and AI output read access to Compute role");
 } else {
-  // Fallback: Log all available nodes to help identify the correct role name in this environment
   console.warn("⚠️ Could not find Compute role to grant S3 permissions. Available nodes:");
   allNodes.forEach((n: any) => {
     if (n.node?.id) console.log(` - ${n.node.id}`);
   });
 }
+
+// Grant the Authenticated User Role permission to read from the AI output bucket
+// This is necessary because the backend API may run with the authenticated user's credentials
+const authenticatedUserRole = backend.auth.resources.authenticatedUserRole;
+authenticatedUserRole.addToPrincipalPolicy(
+  new (await import("aws-cdk-lib/aws-iam")).PolicyStatement({
+    sid: "AllowReadAIOutputForUser",
+    actions: ["s3:GetObject"],
+    resources: ["arn:aws:s3:::roof-inspection-poc-output", "arn:aws:s3:::roof-inspection-poc-output/*"],
+  })
+);
 
 // Expose the function name and bucket ARN to the application via amplify_outputs.json
 backend.addOutput({
