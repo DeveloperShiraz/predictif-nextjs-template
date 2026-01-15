@@ -119,6 +119,14 @@ export async function POST(
                         const uriToLocalKeyMap = new Map<string, string>();
                         const s3Client = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
 
+                        // DEBUG: Log Environment Variables related to AWS
+                        console.log("🔍 DEBUG: AWS Enviroment Check:");
+                        console.log(`Region: ${process.env.AWS_REGION}`);
+                        const awsKeys = Object.keys(process.env).filter(k => k.startsWith('AWS'));
+                        console.log("AWS Env Keys Present:", awsKeys);
+                        if (process.env.AWS_ACCESS_KEY_ID) console.log("Has AWS_ACCESS_KEY_ID: Yes");
+                        if (process.env.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI) console.log("Has Container Creds URI: Yes");
+
                         const copyErrors: any[] = [];
                         for (const outputS3Uri of Array.from(uniqueOutputUris)) {
                             // ... (parsing logic)
