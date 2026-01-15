@@ -118,12 +118,6 @@ export async function POST(
 
                         // 2. Copy each unique image and map URI -> Local Key
                         const uriToLocalKeyMap = new Map<string, string>();
-                        import { fetchAuthSession } from "aws-amplify/auth/server";
-
-                        // ... inside the function ...
-
-                        // 2. Copy each unique image and map URI -> Local Key
-                        const uriToLocalKeyMap = new Map<string, string>();
 
                         // FIX: Retrieve credentials from the Amplify Context (which works in Hosting)
                         // instead of relying on environment variables which seem stripped or custom.
