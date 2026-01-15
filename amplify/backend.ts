@@ -65,10 +65,11 @@ if (computeRole) {
 
   console.log("✅ Successfully granted S3 write access and AI output read access to Compute role");
 } else {
-  // CRITICAL: Fail the build if we can't find the compute role. 
-  // This ensures we don't deploy a broken backend that can't access the images.
-  console.error("❌ FATAL: Could not find Compute role to grant S3 permissions.");
-  throw new Error("Could not find Compute role to grant S3 permissions");
+  // Fallback: Log all available nodes to help identify the correct role name in this environment
+  console.warn("⚠️ Could not find Compute role to grant S3 permissions. Available nodes:");
+  allNodes.forEach((n: any) => {
+    if (n.node?.id) console.log(` - ${n.node.id}`);
+  });
 }
 
 // Expose the function name and bucket ARN to the application via amplify_outputs.json

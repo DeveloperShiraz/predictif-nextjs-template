@@ -196,6 +196,35 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                 </CardHeader>
 
                 <CardContent className="p-6 space-y-8">
+                    {/* Debugging Alerts */}
+                    {(analysisData as any).copy_warnings && (analysisData as any).copy_warnings.length > 0 && (
+                        <div className="bg-red-50 border border-red-200 rounded-md p-4 space-y-2">
+                            <h4 className="text-red-800 font-bold text-sm flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4" /> Backend Copy Failures
+                            </h4>
+                            <ul className="text-xs text-red-700 list-disc pl-5">
+                                {(analysisData as any).copy_warnings.map((w: any, i: number) => (
+                                    <li key={i}>
+                                        <span className="font-semibold">{w.name}:</span> {w.error} <br />
+                                        <span className="text-red-700/60 break-all">{w.uri}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {loadErrors.length > 0 && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-md p-4 space-y-2">
+                            <h4 className="text-orange-800 font-bold text-sm flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4" /> Frontend Loading Failures
+                            </h4>
+                            <ul className="text-xs text-orange-700 list-disc pl-5">
+                                {loadErrors.map((e, i) => (
+                                    <li key={i}>{e}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                     {/* Top Section: Final Assessment & Peril Match */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm transition-all hover:border-blue-300">
