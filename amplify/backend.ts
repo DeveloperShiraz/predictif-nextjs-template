@@ -43,11 +43,12 @@ backend.adminActions.resources.lambda.addToRolePolicy(
 // Grant the server-side (Compute) role permission to upload to S3
 // This is required for the public-to-server-to-S3 proxy in /api/upload/photos
 const allNodes = backend.auth.resources.userPool.stack.node.root.node.findAll();
-const computeRole = allNodes.find((n: any) =>
-  n.node?.id === 'Compute' ||
-  n.node?.id === 'ComputeRole' ||
-  n.node?.id?.includes('Compute')
-);
+const computeRole = allNodes.find((n: any) => {
+  const id = n.node?.id;
+  if (!id || typeof id !== 'string') return false;
+  const lowerId = id.toLowerCase();
+  return lowerId.includes('compute') || lowerId.includes('amplifyhosting') || lowerId.includes('ssrfunction');
+});
 
 if (computeRole) {
   // If the found construct has a 'role' property, use that; otherwise use the construct itself

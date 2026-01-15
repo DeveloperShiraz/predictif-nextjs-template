@@ -300,11 +300,18 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                                 {imageDetections.length > 0 ? (
                                                     <div className="space-y-2">
                                                         {imageDetections.map((d, i) => (
-                                                            <div key={i} className="flex items-start gap-2 text-xs border-b border-gray-200 last:border-0 pb-1 last:pb-0">
-                                                                <Badge className="px-1 py-0 h-4 text-[9px] bg-blue-100 text-blue-700 border-none shrink-0">
-                                                                    {Math.round(d.confidence * 100)}%
-                                                                </Badge>
-                                                                <span className="font-medium text-gray-700 leading-tight">{d.label}</span>
+                                                            <div key={i} className="flex flex-col gap-1 text-xs border-b border-gray-200 last:border-0 pb-2 last:pb-0">
+                                                                <div className="flex items-start gap-2">
+                                                                    <Badge className="px-1 py-0 h-4 text-[9px] bg-blue-100 text-blue-700 border-none shrink-0">
+                                                                        {Math.round(d.confidence * 100)}%
+                                                                    </Badge>
+                                                                    <span className="font-medium text-gray-700 leading-tight">{d.label}</span>
+                                                                </div>
+                                                                {d.notes && (
+                                                                    <p className="text-[10px] text-gray-500 italic pl-6 leading-normal">
+                                                                        "{d.notes}"
+                                                                    </p>
+                                                                )}
                                                             </div>
                                                         ))}
                                                     </div>
