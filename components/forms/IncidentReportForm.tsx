@@ -365,9 +365,22 @@ export function IncidentReportForm({
   };
 
   const handleFiles = (fileList: FileList) => {
-    const validFiles: FileWithPreview[] = [];
+    const MAX_FILES = 20;
+    const remainingSlots = MAX_FILES - files.length;
 
-    Array.from(fileList).forEach((file) => {
+    if (remainingSlots <= 0) {
+      alert("Maximum limit of 20 images reached.");
+      return;
+    }
+
+    const validFiles: FileWithPreview[] = [];
+    const filesArray = Array.from(fileList).slice(0, remainingSlots);
+
+    if (fileList.length > remainingSlots) {
+      alert(`Only the first ${remainingSlots} valid files were added. Maximum limit is 20 images.`);
+    }
+
+    filesArray.forEach((file) => {
       // Check file type: JPEG, PNG, GIF
       const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
       if (allowedTypes.includes(file.type)) {
@@ -792,7 +805,7 @@ export function IncidentReportForm({
                 </label>
               </p>
               <p className="text-xs text-muted-foreground">
-                *Note: We only accept .JPG, .PNG, .GIF file formats*
+                *Note: We only accept .JPG, .PNG, .GIF file formats &bull; Max 20 images*
               </p>
             </div>
 

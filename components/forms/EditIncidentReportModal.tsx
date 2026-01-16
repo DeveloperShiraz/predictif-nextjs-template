@@ -199,10 +199,22 @@ export function EditIncidentReportModal({
   const handleAddNewPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
-      const fileArray = Array.from(files).filter(file => allowedTypes.includes(file.type));
+      const MAX_TOTAL_FILES = 20;
+      const currentTotal = existingPhotos.length + newPhotos.length;
+      const remainingSlots = MAX_TOTAL_FILES - currentTotal;
 
-      if (fileArray.length < files.length) {
+      if (remainingSlots <= 0) {
+        alert("Maximum limit of 20 images reached.");
+        return;
+      }
+
+      const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+      let fileArray = Array.from(files).filter(file => allowedTypes.includes(file.type));
+
+      if (fileArray.length > remainingSlots) {
+        alert(`Only the first ${remainingSlots} valid files were added. Maximum limit is 20 images total.`);
+        fileArray = fileArray.slice(0, remainingSlots);
+      } else if (fileArray.length < files.length) {
         alert("Some files were skipped. Only JPEG, PNG, and GIF are allowed.");
       }
 
@@ -687,7 +699,7 @@ export function EditIncidentReportModal({
                     />
                   </label>
                   <p className="text-xs text-gray-500">
-                    *Only .JPG, .PNG, .GIF allowed*
+                    *Only .JPG, .PNG, .GIF allowed &bull; Max 20 images total*
                   </p>
                   <p className="text-xs text-gray-500">
                     {photoSignedUrls.length + newPhotos.length} photo(s) total
