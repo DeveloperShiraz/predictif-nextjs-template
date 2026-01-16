@@ -244,29 +244,45 @@ export default function ReportsPage() {
     }
   };
 
-  const handleExportPDF = (report: IncidentReport) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert("Please allow pop-ups to export the report.");
-      return;
+  const handleExportPDF = async (report: IncidentReport) => {
+    // 1. Resolve all necessary photo URLs (Original + AI)
+    const resolvedUrls: Record<string, string> = {};
+
+    // Resolve Original Photos
+    if (report.photoUrls && report.photoUrls.length > 0) {
+      const urls = await getSignedPhotoUrls(report.photoUrls);
+      report.photoUrls.forEach((path, i) => {
+        if (urls[i]) resolvedUrls[`original_${i}`] = urls[i];
+      });
     }
 
+    // Resolve AI Photos
     let aiData: any = null;
     if (report.aiAnalysis) {
       try {
         aiData = typeof report.aiAnalysis === 'string' ? JSON.parse(report.aiAnalysis) : report.aiAnalysis;
+        if (aiData?.detections) {
+          const uniquePaths = Array.from(new Set(aiData.detections.map((d: any) => d.local_output_path).filter(Boolean))) as string[];
+          if (uniquePaths.length === 0 && aiData.local_output_path) uniquePaths.push(aiData.local_output_path);
+
+          await Promise.all(uniquePaths.map(async (path) => {
+            try {
+              const res = await getUrl({ path });
+              resolvedUrls[`ai_${path}`] = res.url.toString();
+            } catch (err) {
+              console.error("Error resolving AI photo for PDF:", path, err);
+            }
+          }));
+        }
       } catch (e) {
         console.error("Failed to parse AI analysis for PDF", e);
       }
     }
 
-    const reportPhotos = photoUrlsMap[report.id] || [];
-
     // Helper to format detections per image for the PDF
     const getAnalyzedImagesHtml = () => {
       if (!aiData || !aiData.detections) return '';
-
-      const uniquePaths = Array.from(new Set(aiData.detections.map((d: any) => d.local_output_path).filter(Boolean)));
+      const uniquePaths = Array.from(new Set(aiData.detections.map((d: any) => d.local_output_path).filter(Boolean))) as string[];
       if (uniquePaths.length === 0 && aiData.local_output_path) uniquePaths.push(aiData.local_output_path);
 
       return `
@@ -283,7 +299,7 @@ export default function ReportsPage() {
         return `
                   <div class="gallery-item" style="margin-bottom: 24px;">
                     <div class="analyzed-image-container">
-                      <img src="${photoUrlsMap[`ai_${path}`] || ''}" crossorigin="anonymous" />
+                      <img src="${resolvedUrls[`ai_${path}`] || ''}" crossorigin="anonymous" />
                       <div class="img-badge">Img ${idx + 1}</div>
                     </div>
                     <div class="detections-box">
@@ -560,9 +576,9 @@ export default function ReportsPage() {
           <div class="photos-section">
             <div class="label-caps">Photos</div>
             <div class="photos-grid">
-              ${reportPhotos.map((url, i) => `
+              ${(report.photoUrls || []).map((_, i) => `
                 <div class="photo-item shadow-sm">
-                  <img src="${url}" crossorigin="anonymous" />
+                  <img src="${resolvedUrls[`original_${i}`] || ''}" crossorigin="anonymous" />
                   <div class="photo-caption">Photo ${i + 1}</div>
                 </div>
               `).join('')}
@@ -576,41 +592,52 @@ export default function ReportsPage() {
           </div>
 
           <script>
-            window.onload = () => {
-              const imgs = document.getElementsByTagName('img');
-              let loaded = 0;
-              const total = imgs.length;
-              
-              const startPrint = () => {
-                setTimeout(() => { window.print(); }, 1500);
-              };
-
-              if (total === 0) startPrint();
-              else {
-                Array.from(imgs).forEach(img => {
-                  if (img.complete) {
-                    loaded++;
-                    if (loaded === total) startPrint();
-                  } else {
-                    img.onload = () => {
-                      loaded++;
-                      if (loaded === total) startPrint();
-                    };
-                    img.onerror = () => {
-                      loaded++;
-                      if (loaded === total) startPrint();
-                    };
-                  }
+            window.onload = async () => {
+              const imgs = Array.from(document.getElementsByTagName('img'));
+              const loadPromises = imgs.filter(img => img.src).map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                  img.onload = resolve;
+                  img.onerror = resolve;
                 });
-              }
+              });
+              await Promise.all(loadPromises);
+              setTimeout(() => { 
+                window.print();
+                window.parent.postMessage('print_done', '*');
+              }, 1000);
             }
           </script>
         </body>
       </html>
     `;
 
-    printWindow.document.write(html);
-    printWindow.document.close();
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+
+    const cleanup = () => {
+      document.body.removeChild(iframe);
+      window.removeEventListener('message', handleMessage);
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === 'print_done') cleanup();
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+    }
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
