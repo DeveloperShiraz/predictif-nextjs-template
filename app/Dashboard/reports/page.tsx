@@ -288,7 +288,7 @@ export default function ReportsPage() {
       return `
         <div class="report-section">
           <h3 class="section-title">Visual Evidence Analysis</h3>
-          <div class="gallery-grid">
+          <div class="photo-grid">
             ${uniquePaths.map((path: any, idx) => {
         const detections = aiData.detections.filter((d: any) => d.local_output_path === path);
         return `
@@ -297,15 +297,14 @@ export default function ReportsPage() {
                     <img src="${resolvedUrls[`ai_${path}`] || ''}" crossorigin="anonymous" />
                   </div>
                   <div class="evidence-details">
-                    <p class="evidence-label">Exhibit ${idx + 1}</p>
+                    <p class="evidence-label">EXHIBIT ${idx + 1}</p>
                     <div class="detection-list">
                       ${detections.length > 0 ? detections.map((d: any) => `
                         <div class="detection-entry">
                           <span class="detection-tag">${d.label}</span>
-                          <span class="detection-conf">${Math.round(d.confidence * 100)}% Confidence</span>
-                          ${d.notes ? `<p class="detection-desc">Notes: ${d.notes}</p>` : ''}
+                          <span class="detection-conf">${Math.round(d.confidence * 100)}%</span>
                         </div>
-                      `).join('') : '<p class="no-data">No specific detections identified.</p>'}
+                      `).join('') : '<p class="no-data">No technical labels applied.</p>'}
                     </div>
                   </div>
                 </div>
@@ -441,29 +440,37 @@ export default function ReportsPage() {
           color: #666;
         }
 
-        /* Technical Evidence List */
+        /* Technical Evidence Items (2-column layout) */
         .evidence-item {
-          display: grid;
-          grid-template-cols: 150px 1fr;
-          gap: 15px;
-          margin-bottom: 15px;
+          border: 1px solid #eee;
+          padding: 5px;
+          background: #fff;
           page-break-inside: avoid;
+          display: flex;
+          flex-direction: column;
         }
         .evidence-img-container img {
           width: 100%;
+          aspect-ratio: 4/3;
+          object-fit: cover;
           border: 1px solid #ddd;
         }
+        .evidence-details {
+          padding-top: 5px;
+        }
         .evidence-label {
-          font-size: 10px;
+          font-size: 9px;
           font-weight: 700;
-          margin: 0 0 5px 0;
+          margin: 0 0 3px 0;
           color: #2563eb;
         }
         .detection-entry {
-          font-size: 10px;
-          margin-bottom: 5px;
-          padding-bottom: 5px;
+          font-size: 8px;
+          margin-bottom: 2px;
+          padding-bottom: 2px;
           border-bottom: 1px dashed #eee;
+          display: flex;
+          justify-content: space-between;
         }
         .detection-tag {
           font-weight: 700;
@@ -500,7 +507,8 @@ export default function ReportsPage() {
 
         @media print {
           body { -webkit-print-color-adjust: exact; }
-          .report-section { page-break-inside: avoid; }
+          .report-header { page-break-after: avoid; }
+          .section-title { page-break-after: avoid; }
         }
       </style>
     `;
