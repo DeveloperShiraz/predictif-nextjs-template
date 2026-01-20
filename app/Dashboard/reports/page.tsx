@@ -300,9 +300,12 @@ export default function ReportsPage() {
                     <p class="evidence-label">EXHIBIT ${idx + 1}</p>
                     <div class="detection-list">
                       ${detections.length > 0 ? detections.map((d: any) => `
-                        <div class="detection-entry">
-                          <span class="detection-tag">${d.label}</span>
-                          <span class="detection-conf">${Math.round(d.confidence * 100)}%</span>
+                        <div class="detection-entry" style="flex-direction: column; align-items: flex-start;">
+                          <div style="display: flex; justify-content: space-between; width: 100%;">
+                            <span class="detection-tag">${d.label}</span>
+                            <span class="detection-conf">${Math.round(d.confidence * 100)}%</span>
+                          </div>
+                          ${d.notes ? `<div class="detection-notes" style="font-size: 7px; color: #666; font-style: italic; margin-top: 2px;">Note: ${d.notes}</div>` : ''}
                         </div>
                       `).join('') : '<p class="no-data">No technical labels applied.</p>'}
                     </div>
@@ -507,6 +510,9 @@ export default function ReportsPage() {
 
         @media print {
           body { -webkit-print-color-adjust: exact; }
+          .report-section { page-break-inside: avoid; }
+          .assessment-summary { page-break-inside: avoid; }
+          .evidence-item { page-break-inside: avoid; }
           .report-header { page-break-after: avoid; }
           .section-title { page-break-after: avoid; }
         }
