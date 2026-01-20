@@ -320,111 +320,111 @@ export default function ReportsPage() {
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        @page { size: A4; margin: 20mm; }
+        @page { size: A4; margin: 10mm; }
         * { box-sizing: border-box; }
         
         body { 
           font-family: 'Inter', sans-serif; 
           color: #1a1a1a; 
-          line-height: 1.6;
+          line-height: 1.4;
           background: #fff;
           margin: 0;
           padding: 0;
+          font-size: 11px;
         }
 
         /* Report Header */
         .report-header {
           border-bottom: 2px solid #000;
-          padding-bottom: 10px;
-          margin-bottom: 30px;
+          padding-bottom: 5px;
+          margin-bottom: 20px;
           display: flex;
           justify-content: space-between;
           align-items: flex-end;
         }
         .report-title {
-          font-size: 24px;
+          font-size: 18px;
           font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 0.5px;
           margin: 0;
         }
         .report-id {
-          font-size: 12px;
+          font-size: 10px;
           color: #666;
           font-family: monospace;
         }
 
         /* Section Titles */
         .section-title {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 700;
           text-transform: uppercase;
           border-bottom: 1px solid #eee;
-          padding-bottom: 5px;
-          margin: 30px 0 15px 0;
+          padding-bottom: 3px;
+          margin: 15px 0 10px 0;
           color: #333;
-          letter-spacing: 0.5px;
         }
 
-        /* Info Grids */
+        /* Info Grids - 3 Columns for density */
         .info-grid {
           display: grid;
-          grid-template-cols: repeat(2, 1fr);
-          gap: 30px;
-          margin-bottom: 20px;
+          grid-template-cols: repeat(3, 1fr);
+          gap: 20px;
+          margin-bottom: 10px;
         }
         .info-group {
-          margin-bottom: 15px;
+          margin-bottom: 8px;
         }
         .info-label {
-          font-size: 10px;
+          font-size: 9px;
           font-weight: 700;
           color: #888;
           text-transform: uppercase;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
         }
         .info-value {
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 500;
         }
 
-        /* Assessment Card */
+        /* Assessment Summary */
         .assessment-summary {
           background: #f8fafc;
           border: 1px solid #e2e8f0;
-          padding: 20px;
+          padding: 12px 15px;
           border-radius: 4px;
-          margin-bottom: 20px;
+          margin-bottom: 15px;
         }
         .verdict-box {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 15px;
+          margin-bottom: 8px;
         }
         .verdict-main {
-          font-size: 18px;
+          font-size: 15px;
           font-weight: 700;
           color: #2563eb;
         }
         .match-indicator {
-          font-size: 11px;
+          font-size: 9px;
           font-weight: 700;
-          padding: 3px 10px;
+          padding: 2px 8px;
           border-radius: 3px;
           background: #fff;
           border: 1px solid #e2e8f0;
         }
 
-        /* Photo Grids */
+        /* Photo Grids - 4 Photos per row */
         .photo-grid {
           display: grid;
-          grid-template-cols: repeat(3, 1fr);
-          gap: 15px;
+          grid-template-cols: repeat(4, 1fr);
+          gap: 10px;
         }
         .photo-box {
           border: 1px solid #eee;
-          padding: 5px;
+          padding: 3px;
           background: #fff;
         }
         .photo-box img {
@@ -434,18 +434,18 @@ export default function ReportsPage() {
           display: block;
         }
         .photo-caption {
-          font-size: 9px;
+          font-size: 8px;
           text-align: center;
-          margin-top: 5px;
+          margin-top: 3px;
           color: #666;
         }
 
         /* Technical Evidence List */
         .evidence-item {
           display: grid;
-          grid-template-cols: 250px 1fr;
-          gap: 20px;
-          margin-bottom: 25px;
+          grid-template-cols: 150px 1fr;
+          gap: 15px;
+          margin-bottom: 15px;
           page-break-inside: avoid;
         }
         .evidence-img-container img {
@@ -453,15 +453,15 @@ export default function ReportsPage() {
           border: 1px solid #ddd;
         }
         .evidence-label {
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 700;
-          margin: 0 0 10px 0;
+          margin: 0 0 5px 0;
           color: #2563eb;
         }
         .detection-entry {
-          font-size: 11px;
-          margin-bottom: 8px;
-          padding-bottom: 8px;
+          font-size: 10px;
+          margin-bottom: 5px;
+          padding-bottom: 5px;
           border-bottom: 1px dashed #eee;
         }
         .detection-tag {
@@ -474,26 +474,26 @@ export default function ReportsPage() {
         .detection-desc {
           font-style: italic;
           color: #555;
-          margin: 3px 0 0 15px;
+          margin: 2px 0 0 10px;
         }
 
         /* Bullet Points */
         .findings-list {
-          font-size: 11px;
+          font-size: 10px;
           margin: 0;
-          padding-left: 20px;
+          padding-left: 15px;
         }
         .findings-list li {
-          margin-bottom: 5px;
+          margin-bottom: 3px;
         }
 
         /* Footer */
         .report-footer {
-          margin-top: 50px;
-          padding-top: 10px;
+          margin-top: 30px;
+          padding-top: 8px;
           border-top: 1px solid #eee;
           text-align: center;
-          font-size: 10px;
+          font-size: 9px;
           color: #999;
         }
 
@@ -558,37 +558,35 @@ export default function ReportsPage() {
 
           <div class="report-section" style="margin-top: 0;">
             <div class="info-grid">
-              <div class="info-col">
-                <div class="info-group">
-                  <div class="info-label">Subject / Claimant</div>
-                  <div class="info-value">${report.firstName} ${report.lastName}</div>
-                  <div class="info-value">${report.email} | ${report.phone}</div>
-                </div>
-                <div class="info-group">
-                  <div class="info-label">Incident Date</div>
-                  <div class="info-value">${formatDateOnly(report.incidentDate)}</div>
-                </div>
-                <div class="info-group">
-                  <div class="info-label">Case ID / Claim #</div>
-                  <div class="info-value">${report.claimNumber}</div>
-                </div>
+              <div class="info-group">
+                <div class="info-label">Subject / Claimant</div>
+                <div class="info-value">${report.firstName} ${report.lastName}</div>
+                <div class="info-value">${report.email} | ${report.phone}</div>
               </div>
-              <div class="info-col">
+              <div class="info-group">
+                <div class="info-label">Incident Details</div>
+                <div class="info-value">Date: ${formatDateOnly(report.incidentDate)}</div>
+                <div class="info-value">Ref/Claim: ${report.claimNumber}</div>
+              </div>
+              <div class="info-group">
+                <div class="info-label">Property Location</div>
+                <div class="info-value">${report.address}${report.apartment ? `, Apt ${report.apartment}` : ''}</div>
+                <div class="info-value">${report.city}, ${report.state} ${report.zip}</div>
+              </div>
+              
+              <div class="info-group">
+                <div class="info-label">Report Generation</div>
+                <div class="info-value">${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+              </div>
+              ${report.companyName ? `
                 <div class="info-group">
-                  <div class="info-label">Property Location</div>
-                  <div class="info-value">${report.address}${report.apartment ? `, Apt ${report.apartment}` : ''}</div>
-                  <div class="info-value">${report.city}, ${report.state} ${report.zip}</div>
+                  <div class="info-label">Assigned Organization</div>
+                  <div class="info-value" style="color: #2563eb;">${report.companyName}</div>
                 </div>
-                <div class="info-group">
-                  <div class="info-label">Report Generated</div>
-                  <div class="info-value">${new Date().toLocaleString()}</div>
-                </div>
-                ${report.companyName ? `
-                  <div class="info-group">
-                    <div class="info-label">Assigned Organization</div>
-                    <div class="info-value" style="color: #2563eb;">${report.companyName}</div>
-                  </div>
-                ` : ''}
+              ` : ''}
+              <div class="info-group">
+                <div class="info-label">Status</div>
+                <div class="info-value" style="text-transform: capitalize;">${(report.status || 'Submitted').replace('_', ' ')}</div>
               </div>
             </div>
           </div>
