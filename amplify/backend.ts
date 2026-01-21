@@ -109,26 +109,8 @@ for (const groupName of groups) {
   }
 }
 
-// Grant Lambda invoke permission to group roles that can trigger AI analysis
-// This is safe now because analyzeReport is in a custom 'analysis' stack, breaking the circular dependency
-const analysisGroups = ["SuperAdmin", "Admin", "IncidentReporter"];
-for (const groupName of analysisGroups) {
-  const roleId = `${groupName}GroupRole`;
-  const roleNode = allNodes.find((n: any) => n.node?.id === roleId);
-  if (roleNode) {
-    const role = (roleNode as any).role || roleNode;
-    role.addToPrincipalPolicy(
-      new (await import("aws-cdk-lib/aws-iam")).PolicyStatement({
-        sid: `AllowInvokeAnalyzeReportFor${groupName}`,
-        actions: ["lambda:InvokeFunction"],
-        resources: [backend.analyzeReport.resources.lambda.functionArn],
-      })
-    );
-    console.log(`✅ Granted Lambda invoke permission to group role: ${groupName}`);
-  } else {
-    console.warn(`⚠️ Could not find IAM Role for group: ${groupName}`);
-  }
-}
+// NOTE: We do NOT grant Lambda invoke permission to group roles here because it creates circular dependencies.
+// Instead, we use a resource-based policy on the Lambda function itself (see below).
 
 // Grant the analyzeReport function permissions
 // 1. Read from AI Output bucket
@@ -149,6 +131,25 @@ if (computeRole) {
   const grantable = (computeRole as any).role || computeRole;
   backend.analyzeReport.resources.lambda.grantInvoke(grantable);
   console.log("✅ Granted Lambda invoke permission to Compute role");
+}
+
+// 4. Add resource-based policy to allow group roles to invoke the function
+// This avoids circular dependencies by having the Lambda grant access TO roles
+// instead of roles requesting access FROM Lambda
+const { CfnPermission } = await import("aws-cdk-lib/aws-lambda");
+const analysisGroups = ["SuperAdmin", "Admin", "IncidentReporter"];
+for (const groupName of analysisGroups) {
+  const roleId = `${groupName}GroupRole`;
+  const roleNode = allNodes.find((n: any) => n.node?.id === roleId);
+  if (roleNode) {
+    const role = (roleNode as any).role || roleNode;
+    new CfnPermission(backend.analyzeReport.resources.lambda as any, `InvokePermission${groupName}`, {
+      action: "lambda:InvokeFunction",
+      functionName: backend.analyzeReport.resources.lambda.functionName,
+      principal: role.roleArn,
+    });
+    console.log(`✅ Added resource-based permission for group role: ${groupName}`);
+  }
 }
 
 // Pass AppSync API details to the function

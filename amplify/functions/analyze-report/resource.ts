@@ -4,5 +4,5 @@ export const analyzeReport = defineFunction({
     name: "analyzeReport",
     entry: "./handler.ts",
     timeoutSeconds: 300, // 5 minutes for heavy AI analysis and image copying
-    resourceGroupName: "analysis", // Custom stack to avoid circular dependencies
+    resourceGroupName: "data", // Assign to data stack (uses resource-based policy for permissions)
 });
