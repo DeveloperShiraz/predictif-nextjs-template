@@ -109,6 +109,27 @@ for (const groupName of groups) {
   }
 }
 
+// Grant Lambda invoke permission to group roles that can trigger AI analysis
+// This is safe now because analyzeReport is in a custom 'analysis' stack, breaking the circular dependency
+const analysisGroups = ["SuperAdmin", "Admin", "IncidentReporter"];
+for (const groupName of analysisGroups) {
+  const roleId = `${groupName}GroupRole`;
+  const roleNode = allNodes.find((n: any) => n.node?.id === roleId);
+  if (roleNode) {
+    const role = (roleNode as any).role || roleNode;
+    role.addToPrincipalPolicy(
+      new (await import("aws-cdk-lib/aws-iam")).PolicyStatement({
+        sid: `AllowInvokeAnalyzeReportFor${groupName}`,
+        actions: ["lambda:InvokeFunction"],
+        resources: [backend.analyzeReport.resources.lambda.functionArn],
+      })
+    );
+    console.log(`✅ Granted Lambda invoke permission to group role: ${groupName}`);
+  } else {
+    console.warn(`⚠️ Could not find IAM Role for group: ${groupName}`);
+  }
+}
+
 // Grant the analyzeReport function permissions
 // 1. Read from AI Output bucket
 backend.analyzeReport.resources.lambda.addToRolePolicy(
