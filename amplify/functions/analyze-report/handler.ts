@@ -172,7 +172,8 @@ export const handler = async (event: { reportId: string, bucket?: string, region
                 variables: {
                     input: {
                         id: reportId,
-                        aiAnalysis: JSON.stringify(analysisData)
+                        aiAnalysis: JSON.stringify(analysisData),
+                        status: 'submitted' // Reset status to stop polling
                     }
                 }
             })
@@ -207,7 +208,8 @@ export const handler = async (event: { reportId: string, bucket?: string, region
                     variables: {
                         input: {
                             id: reportId,
-                            aiAnalysis: JSON.stringify({ status: "failed", error: error.message })
+                            aiAnalysis: JSON.stringify({ status: "failed", error: error.message }),
+                            status: 'submitted' // Reset status to stop polling
                         }
                     }
                 })
