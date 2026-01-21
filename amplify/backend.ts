@@ -122,7 +122,17 @@ backend.analyzeReport.resources.lambda.addToRolePolicy(
 // 2. Read/Write to our own storage bucket
 backend.storage.resources.bucket.grantReadWrite(backend.analyzeReport.resources.lambda);
 
-// 3. Invoke by SSR
+// 3. Grant invoke permission to authenticated users
+// This allows logged-in users to trigger the analysis
+authenticatedUserRole.addToPrincipalPolicy(
+  new (await import("aws-cdk-lib/aws-iam")).PolicyStatement({
+    sid: "AllowInvokeAnalyzeReport",
+    actions: ["lambda:InvokeFunction"],
+    resources: [backend.analyzeReport.resources.lambda.functionArn],
+  })
+);
+
+// 4. Invoke by SSR (Compute role)
 if (computeRole) {
   const grantable = (computeRole as any).role || computeRole;
   backend.analyzeReport.resources.lambda.grantInvoke(grantable);
