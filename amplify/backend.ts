@@ -133,7 +133,12 @@ if (computeRole) {
   console.log("✅ Granted Lambda invoke permission to Compute role");
 }
 
-// 4. Add resource-based policy to allow group roles to invoke the function
+// 4. Grant invoke permission to authenticated user role
+// This allows the API route (running with user credentials) to invoke the Lambda
+backend.analyzeReport.resources.lambda.grantInvoke(authenticatedUserRole);
+console.log("✅ Granted Lambda invoke permission to Authenticated User role");
+
+// 5. Add resource-based policy to allow group roles to invoke the function
 // This avoids circular dependencies by having the Lambda grant access TO roles
 // instead of roles requesting access FROM Lambda
 const { CfnPermission } = await import("aws-cdk-lib/aws-lambda");
