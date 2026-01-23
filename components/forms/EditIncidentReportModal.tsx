@@ -53,6 +53,12 @@ const editIncidentReportSchema = z.object({
     .optional()
     .refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 12),
       "Shingle exposure must be between 0 and 12 inches"),
+  hailSize: z.string()
+    .optional()
+    .refine((val) => !val || (!isNaN(parseFloat(val)) && parseFloat(val) >= 0 && parseFloat(val) <= 10),
+      "Hail size must be between 0 and 10 inches"),
+  weatherDate: z.date().optional().refine((date) => !date || date <= new Date(), "Weather date cannot be in the future"),
+  weatherDescription: z.string().max(500, "Weather description must be 500 characters or less").optional(),
   status: z.enum(["submitted", "in_review", "resolved"]).optional(),
 });
 
@@ -73,6 +79,7 @@ interface IncidentReport {
   incidentDate: string;
   description: string;
   shingleExposure?: number;
+  weatherReport?: string | any; // JSON string or object
   photoUrls?: string[];
   status?: string;
   submittedAt?: string;
@@ -100,6 +107,17 @@ export function EditIncidentReportModal({
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [deletedPhotos, setDeletedPhotos] = useState<string[]>([]);
 
+  // Helper to parse weather report safely
+  const parseWeatherReport = (reportData: any) => {
+    try {
+      if (!reportData) return {};
+      return typeof reportData === 'string' ? JSON.parse(reportData) : reportData;
+    } catch (e) {
+      console.error("Failed to parse weather report for edit:", e);
+      return {};
+    }
+  };
+
   const form = useForm<EditIncidentReportFormData>({
     resolver: zodResolver(editIncidentReportSchema),
     defaultValues: {
@@ -116,12 +134,17 @@ export function EditIncidentReportModal({
       incidentDate: new Date(report.incidentDate),
       description: report.description,
       shingleExposure: report.shingleExposure ? report.shingleExposure.toString() : "",
+      hailSize: "", // Will be set in useEffect
+      weatherDate: undefined, // Will be set in useEffect
+      weatherDescription: "", // Will be set in useEffect
       status: (report.status as "submitted" | "in_review" | "resolved") || "submitted",
     },
   });
 
   useEffect(() => {
     if (isOpen) {
+      const weatherData = parseWeatherReport(report.weatherReport);
+
       // Reset form with report data when modal opens
       form.reset({
         claimNumber: report.claimNumber,
@@ -137,6 +160,9 @@ export function EditIncidentReportModal({
         incidentDate: new Date(report.incidentDate),
         description: report.description,
         shingleExposure: report.shingleExposure ? report.shingleExposure.toString() : "",
+        hailSize: weatherData.reported_hail_size_inches ? weatherData.reported_hail_size_inches.toString() : "",
+        weatherDate: weatherData.weather_date ? new Date(weatherData.weather_date) : undefined,
+        weatherDescription: weatherData.weather_description || "",
         status: (report.status as "submitted" | "in_review" | "resolved") || "submitted",
       });
 
@@ -292,6 +318,11 @@ export function EditIncidentReportModal({
         incidentDate: data.incidentDate.toISOString().split('T')[0],
         description: data.description,
         shingleExposure: data.shingleExposure ? parseFloat(data.shingleExposure) : undefined,
+        weatherReport: JSON.stringify({
+          reported_hail_size_inches: data.hailSize ? parseFloat(data.hailSize) : null,
+          weather_date: data.weatherDate ? data.weatherDate.toISOString() : null,
+          weather_description: data.weatherDescription || ""
+        }),
         status: data.status,
         photoUrls: finalPhotoUrls,
       };
@@ -596,35 +627,129 @@ export function EditIncidentReportModal({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="shingleExposure"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Shingle Exposure (Optional)</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        step="0.25"
-                        min="0"
-                        max="12"
-                        placeholder="Enter measurement"
+            <div className="space-y-4 border-t border-gray-200 pt-4">
+              <h3 className="text-sm font-medium text-gray-700">Property Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="shingleExposure"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Shingle Exposure (Optional)</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.25"
+                            min="0"
+                            max="12"
+                            placeholder="Enter measurement"
+                            {...field}
+                            className="pr-16"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                            inches
+                          </span>
+                        </div>
+                      </FormControl>
+                      <p className="text-xs text-gray-500">
+                        Height from top to bottom of shingle (0-12 inches)
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 border-t border-gray-200 pt-4">
+              <h3 className="text-sm font-medium text-gray-700">Weather Information (Optional)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="hailSize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Hail Size</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            step="0.25"
+                            min="0"
+                            max="10"
+                            placeholder="0.00"
+                            {...field}
+                            className="pr-16"
+                          />
+                          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                            inches
+                          </span>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="weatherDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Weather Date</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={`w-full pl-3 text-left font-normal ${!field.value ? "text-muted-foreground" : ""}`}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="weatherDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weather Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe weather conditions (e.g., 'Heavy hail storm with high winds')..."
+                        className="min-h-[80px]"
                         {...field}
-                        className="pr-16"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                        inches
-                      </span>
-                    </div>
-                  </FormControl>
-                  <p className="text-xs text-gray-500">
-                    Height from top to bottom of shingle (0-12 inches)
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Photo Management Section */}
             <div className="space-y-4">

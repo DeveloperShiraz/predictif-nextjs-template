@@ -44,6 +44,7 @@ interface IncidentReport {
   companyName?: string | null;
   submittedBy?: string;
   aiAnalysis?: any;
+  weatherReport?: any;
 }
 
 export default function ReportsPage() {
@@ -326,6 +327,24 @@ export default function ReportsPage() {
       } catch (e) {
         console.error("Failed to parse AI analysis for PDF", e);
       }
+    }
+
+    // Helper to format date
+    const formatDateOnly = (dateStr: string) => {
+      if (!dateStr) return 'N/A';
+      return new Date(dateStr).toLocaleDateString();
+    };
+
+    // Parse weather report for PDF
+    let weatherData: any = null;
+    try {
+      if (report.weatherReport) {
+        weatherData = typeof report.weatherReport === 'string'
+          ? JSON.parse(report.weatherReport)
+          : report.weatherReport;
+      }
+    } catch (e) {
+      console.error("Failed to parse weather report for PDF", e);
     }
 
     // Helper to format technical assessment per image for the PDF
@@ -668,6 +687,26 @@ export default function ReportsPage() {
             </div>
           </div>
 
+          ${weatherData ? `
+          <div class="report-section">
+            <h3 class="section-title">Weather Information</h3>
+            <div class="info-grid">
+               <div class="info-group">
+                  <div class="info-label">Hail Size (Reported)</div>
+                  <div class="info-value">${weatherData.reported_hail_size_inches || 'N/A'} inches</div>
+               </div>
+               <div class="info-group">
+                  <div class="info-label">Weather Date</div>
+                  <div class="info-value">${weatherData.weather_date ? formatDateOnly(weatherData.weather_date) : 'N/A'}</div>
+               </div>
+               <div class="info-group" style="grid-column: span 1;">
+                 <div class="info-label">Weather Description</div>
+                 <div class="info-value" style="font-style: italic;">"${weatherData.weather_description || 'No description'}"</div>
+               </div>
+            </div>
+          </div>
+          ` : ''}
+
           <div class="report-section">
             <h3 class="section-title">Incident Description</h3>
             <p class="info-value" style="white-space: pre-wrap; color: #444;">${report.description}</p>
@@ -692,7 +731,7 @@ export default function ReportsPage() {
           </div>
 
           ${aiSectionHtml}
-
+          
           <div class="report-footer">
             Confidential Document &bull; Investigated by Predictif AI Systems &bull; Page 1 of 1
           </div>

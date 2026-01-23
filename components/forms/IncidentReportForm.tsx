@@ -94,7 +94,7 @@ const formSchema = z.object({
       return !isNaN(num) && num >= 0 && num <= 10;
     }, "Hail size must be between 0 and 10 inches"),
   weatherDate: z.date().optional().refine((date) => !date || date <= new Date(), "Weather date cannot be in the future"),
-  weatherDescription: z.string().optional().max(500, "Weather description must be 500 characters or less"),
+  weatherDescription: z.string().max(500, "Weather description must be 500 characters or less").optional(),
 
   shingleExposure: z.string()
     .optional()
