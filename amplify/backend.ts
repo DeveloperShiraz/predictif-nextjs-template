@@ -137,8 +137,10 @@ backend.storage.resources.bucket.grantReadWrite(backend.analyzeReport.resources.
 // 3. Grant invoke permission to SSR (Compute role)
 // The API route runs in the SSR context, so the compute role needs to invoke the Lambda
 if (computeRole) {
+  const { ArnPrincipal } = await import("aws-cdk-lib/aws-iam");
+  const grantable = (computeRole as any).role || computeRole;
   backend.analyzeReport.resources.lambda.addPermission("ComputeRoleInvoke", {
-    principal: computeRole,
+    principal: new ArnPrincipal(grantable.roleArn),
     action: "lambda:InvokeFunction"
   });
   console.log("✅ Added resource-based permission for Compute role");
