@@ -132,10 +132,24 @@ backend.analyzeReport.resources.lambda.addToRolePolicy(
 );
 
 // 2. Read/Write to our own storage bucket
-backend.storage.resources.bucket.grantReadWrite(backend.analyzeReport.resources.lambda);
+// We use a Resource Policy on the bucket to avoid 'data' -> 'storage' dependency.
+// Instead, 'storage' will depend on 'data' (Lambda Role ARN).
+const { PolicyStatement, ArnPrincipal } = await import("aws-cdk-lib/aws-iam");
+backend.storage.resources.bucket.addToResourcePolicy(
+  new PolicyStatement({
+    actions: ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:DeleteObject"],
+    resources: [
+      backend.storage.resources.bucket.bucketArn,
+      backend.storage.resources.bucket.arnForObjects("*"),
+    ],
+    principals: [new ArnPrincipal(backend.analyzeReport.resources.lambda.grantPrincipal.principalArn)],
+  })
+);
 
 // 3. Grant invoke permission to SSR (Compute role)
-// The API route runs in the SSR context, so the compute role needs to invoke the Lambda
+// The API route runs in the SSR context, so the compute role needs to invoke the Lambda.
+// We use grantInvoke which adds a resource-based permission to the Lambda (Data), referring to the Principal (Auth).
+// This creates 'data' -> 'auth', which is fine.
 if (computeRole) {
   const grantable = (computeRole as any).role || computeRole;
   backend.analyzeReport.resources.lambda.grantInvoke(grantable);
@@ -143,13 +157,12 @@ if (computeRole) {
 }
 
 // 4. Grant invoke permission to authenticated user role
-// This allows the API route (running with user credentials) to invoke the Lambda
+// Again, 'data' -> 'auth'. Safe.
 backend.analyzeReport.resources.lambda.grantInvoke(authenticatedUserRole);
 console.log("✅ Granted Lambda invoke permission to Authenticated User role");
 
 // 5. Add resource-based policy to allow group roles to invoke the function
-// This avoids circular dependencies by having the Lambda grant access TO roles
-// instead of roles requesting access FROM Lambda
+// 'data' -> 'auth'. Safe.
 const { CfnPermission } = await import("aws-cdk-lib/aws-lambda");
 const analysisGroups = ["SuperAdmin", "Admin", "IncidentReporter"];
 for (const groupName of analysisGroups) {
