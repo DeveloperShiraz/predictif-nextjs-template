@@ -696,7 +696,7 @@ export function EditIncidentReportModal({
                   control={form.control}
                   name="weatherDate"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                       <FormLabel>Weather Date</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>

@@ -798,7 +798,7 @@ export function IncidentReportForm({
                 control={form.control}
                 name="weatherDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Weather Date</FormLabel>
                     <Popover open={weatherDatePickerOpen} onOpenChange={setWeatherDatePickerOpen}>
                       <PopoverTrigger asChild>
