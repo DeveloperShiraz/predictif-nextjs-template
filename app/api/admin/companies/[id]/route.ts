@@ -78,6 +78,40 @@ export async function PATCH(
           );
         }
 
+        // CASCADING UPDATE: If name changed, update all IncidentReports
+        if (updateData.name) {
+          console.log(`Starting cascading update for company: ${id} -> ${updateData.name}`);
+
+          // 1. Fetch all reports for this company
+          const { data: reports, errors: fetchErrors } = await client.models.IncidentReport.list(contextSpec, {
+            filter: { companyId: { eq: id } },
+            selectionSet: ['id'] // Optimized fetch
+          });
+
+          if (fetchErrors) {
+            console.error("Failed to fetch reports for cascading update:", fetchErrors);
+          } else if (reports && reports.length > 0) {
+            console.log(`Found ${reports.length} reports to update.`);
+
+            // 2. Update each report (Sequentially to avoid rate limits, or Promise.all for speed)
+            let updatedCount = 0;
+            for (const report of reports) {
+              try {
+                await client.models.IncidentReport.update(contextSpec, {
+                  id: report.id,
+                  companyName: updateData.name
+                });
+                updatedCount++;
+              } catch (e) {
+                console.error(`Failed to cascade update for report ${report.id}:`, e);
+              }
+            }
+            console.log(`Successfully cascaded name change into ${updatedCount}/${reports.length} reports.`);
+          } else {
+            console.log("No reports found to update.");
+          }
+        }
+
         return NextResponse.json({ company });
       } catch (error: any) {
         console.error("Error updating company:", error);

@@ -55,10 +55,10 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
         }
     }, [analysis]);
 
-    // Polling logic for pending status
+    // Polling logic for pending OR analyzing status
     useEffect(() => {
-        // Only poll if we have pending data AND a reportId to fetch
-        if (analysisData && analysisData.status === 'pending' && reportId) {
+        // Poll if status is 'pending' OR 'analyzing' AND we have a reportId
+        if (analysisData && (analysisData.status === 'pending' || analysisData.status === 'analyzing') && reportId) {
             console.log(`Polling for report ${reportId}...`);
             const interval = setInterval(async () => {
                 try {
@@ -78,8 +78,8 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                         if (updatedReport?.aiAnalysis) {
                             try {
                                 const newAnalysis = JSON.parse(updatedReport.aiAnalysis);
-                                // If status changed from pending to something else (or just has valid detections)
-                                if (newAnalysis.status !== 'pending' || newAnalysis.detections) {
+                                // If status changed from pending/analyzing to something else (or just has valid detections)
+                                if ((newAnalysis.status !== 'pending' && newAnalysis.status !== 'analyzing') || newAnalysis.detections) {
                                     console.log("Analysis completed! Updating UI...", newAnalysis);
                                     setAnalysisData(newAnalysis);
                                 }
@@ -137,8 +137,8 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
 
     if (!analysisData) return null;
 
-    // Check for pending status
-    if (analysisData.status === 'pending') {
+    // Check for pending OR analyzing status
+    if (analysisData.status === 'pending' || analysisData.status === 'analyzing') {
         return (
             <Card className="mt-8 border-blue-100 bg-blue-50/10 overflow-hidden shadow-sm animate-pulse">
                 <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
@@ -334,7 +334,7 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                 Evidence Bullets
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                                {analysisData.evidence_bullets.map((bullet, idx) => (
+                                {Array.from(new Set(analysisData.evidence_bullets)).map((bullet, idx) => (
                                     <div key={idx} className="text-[11px] text-gray-700 flex items-start gap-3 bg-white/50 p-2 rounded-lg border border-transparent hover:border-green-100 transition-colors">
                                         <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0 shadow-sm shadow-green-200" />
                                         <span className="leading-tight">{bullet}</span>
@@ -350,15 +350,63 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                 Risk Indicators
                             </h4>
                             <div className="space-y-3 relative z-10">
-                                {analysisData.fraud_signals.map((signal, idx) => (
-                                    <div key={idx} className="text-[10px] text-red-700 font-bold flex items-start gap-3 bg-white/40 p-2 rounded-lg border border-red-200/30">
-                                        <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0 text-red-500" />
-                                        <span className="leading-snug">{signal}</span>
-                                    </div>
-                                ))}
-                                {analysisData.fraud_signals.length === 0 && (
-                                    <p className="text-xs text-green-700 italic font-medium">No fraud signals identified by current model params.</p>
-                                )}
+                                {(() => {
+                                    // Deduplicate and count signals
+                                    const signalCounts = new Map<string, number>();
+                                    // Normalize for loose matching (lowercase, remove punctuation)
+                                    const normalizedMap = new Map<string, string>(); // normalized -> original
+
+                                    analysisData.fraud_signals.forEach(signal => {
+                                        const normalized = signal.toLowerCase().replace(/[^\w\s]/g, '').trim();
+
+                                        // Specific heuristic: "No weather report" variations
+                                        if (normalized.includes("no weather report")) {
+                                            const key = "no_weather_report_group";
+                                            // Store the most descriptive one if not exists or override if current is better
+                                            if (!normalizedMap.has(key) || signal.length > normalizedMap.get(key)!.length) {
+                                                normalizedMap.set(key, signal);
+                                            }
+                                            signalCounts.set(key, (signalCounts.get(key) || 0) + 1);
+                                        } else {
+                                            // General deduplication
+                                            if (!signalCounts.has(signal)) {
+                                                signalCounts.set(signal, 1);
+                                            } else {
+                                                signalCounts.set(signal, signalCounts.get(signal)! + 1);
+                                            }
+                                        }
+                                    });
+
+                                    // If we grouped weather reports, use the representative string
+                                    const displaySignals: { text: string, count: number }[] = [];
+
+                                    signalCounts.forEach((count, key) => {
+                                        if (key === "no_weather_report_group") {
+                                            displaySignals.push({ text: normalizedMap.get(key) || "No weather report provided (Multiple checks failed)", count });
+                                        } else {
+                                            displaySignals.push({ text: key, count });
+                                        }
+                                    });
+
+                                    return (
+                                        <>
+                                            {displaySignals.map((item, idx) => (
+                                                <div key={idx} className="text-[10px] text-red-700 font-bold flex items-start gap-3 bg-white/40 p-2 rounded-lg border border-red-200/30">
+                                                    <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0 text-red-500" />
+                                                    <span className="leading-snug">
+                                                        {item.text}
+                                                        {item.count > 1 && (
+                                                            <span className="ml-2 px-1.5 py-0.5 bg-red-100 text-red-800 rounded-full text-[9px]">x{item.count}</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            {displaySignals.length === 0 && (
+                                                <p className="text-xs text-green-700 italic font-medium">No fraud signals identified by current model params.</p>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
                     </div>
