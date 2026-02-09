@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Toolbar } from "@mui/material";
+
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -57,10 +57,10 @@ const CustomSidebarTrigger = () => {
 
 export default function TopBar() {
   return (
-    <Box className="w-full">
-      <Toolbar
+    <div className="w-full">
+      <div
         className={cn(
-          "flex justify-between p-4 h-[64px]",
+          "flex justify-between items-center p-4 h-[64px]",
           "bg-[hsl(var(--theme-topbar))]",
           "border-b border-gray-300 dark:border-gray-700",
           "transition-colors duration-200",
@@ -72,7 +72,7 @@ export default function TopBar() {
           <ThemeToggle className={cn("px-8")} />
           <NavUser />
         </div>
-      </Toolbar>
-    </Box>
+      </div>
+    </div>
   );
 }

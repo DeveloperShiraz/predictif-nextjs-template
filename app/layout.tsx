@@ -3,7 +3,7 @@ import "@/styles/global.css";
 import { inter } from "@/components/ui/fonts";
 import Providers from "@/components/Providers";
 import { cn } from "@/lib/utils";
-import { CloudscapeThemeProvider } from "@/components/CloudscapeThemeProvider";
+
 import { Toaster } from "@/components/ui/Toaster";
 
 export default async function RootLayout({
@@ -21,10 +21,8 @@ export default async function RootLayout({
         )}
       >
         <Providers>
-          <CloudscapeThemeProvider>
-            {children}
-            <Toaster />
-          </CloudscapeThemeProvider>
+          {children}
+          <Toaster />
         </Providers>
       </body>
     </html>

@@ -1,14 +1,19 @@
-import { BoxProps } from "@mui/material";
-import { styled } from "@mui/system";
+import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
-interface FlexBetweenProps extends BoxProps {}
+interface FlexBetweenProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+}
 
-const FlexBetween = styled("div")<FlexBetweenProps>({
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-});
+const FlexBetween = ({ className, children, ...props }: FlexBetweenProps) => {
+  return (
+    <div
+      className={cn("flex justify-between items-center", className)}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
 
 export default FlexBetween;
-
-FlexBetween.displayName = "FlexBetween";

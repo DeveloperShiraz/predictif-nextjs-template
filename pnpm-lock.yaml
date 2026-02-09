@@ -55,30 +55,9 @@ importers:
       '@aws-sdk/lib-storage':
         specifier: ^3.969.0
         version: 3.969.0(@aws-sdk/client-s3@3.779.0)
-      '@cloudscape-design/board-components':
-        specifier: ^3.0.92
-        version: 3.0.95(@cloudscape-design/components@3.0.933(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      '@cloudscape-design/collection-hooks':
-        specifier: ^1.0.61
-        version: 1.0.67(react@19.0.0-rc-cd22717c-20241013)
-      '@cloudscape-design/components':
-        specifier: ^3.0.899
-        version: 3.0.933(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      '@cloudscape-design/global-styles':
-        specifier: ^1.0.36
-        version: 1.0.38
       '@hookform/resolvers':
         specifier: ^5.0.1
         version: 5.0.1(react-hook-form@7.55.0(react@19.0.0-rc-cd22717c-20241013))
-      '@mui/icons-material':
-        specifier: 6.1.7
-        version: 6.1.7(@mui/material@6.1.7(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1)
-      '@mui/material':
-        specifier: 6.1.7
-        version: 6.1.7(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1)
-      '@mui/system':
-        specifier: 6.1.7
-        version: 6.1.7(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1)
       '@mui/x-data-grid':
         specifier: 7.22.2
         version: 7.22.2(2fd19d7ebda6dbd40d79c5688ac3fa88)
@@ -1795,60 +1774,8 @@ packages:
   '@cdklabs/tskb@0.0.3':
     resolution: {integrity: sha512-JR+MuD4awAXvutu7HArephXfZm09GPTaSAQUqNcJB5+ZENRm4kV+L6vJL6Tn1xHjCcHksO+HAqj3gYtm5K94vA==}
 
-  '@cloudscape-design/board-components@3.0.95':
-    resolution: {integrity: sha512-QbA9lOAWFHkjkluZJ7l5mzMRSBJP2+VQiWPTNVFZnatSl7xO4I1/UGlUfpDotnXHA5omlkRdiPMPxSeBzsbGxA==}
-    peerDependencies:
-      '@cloudscape-design/components': ^3
-      react: ^18.2.0
-      react-dom: ^18.2.0
-
-  '@cloudscape-design/collection-hooks@1.0.67':
-    resolution: {integrity: sha512-jzE8UO/MByRK48ck+SQY+ETj0tPQ6dvuwVUu1hNiC1KimnzeNdFYuQN2NLUEXczmeYqwMNy4k/AkNFDRgWzxCA==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-
-  '@cloudscape-design/component-toolkit@1.0.0-beta.92':
-    resolution: {integrity: sha512-NrD3C5QolTvZbrg1Y4szneHemWnDZXK8vWx1d9jp28eAIA8F9LPOykor+OSHNfWzEC1cIuTw5gXV2q8m1E/vAQ==}
-
-  '@cloudscape-design/components@3.0.933':
-    resolution: {integrity: sha512-4Yxm2F1tH9ccKyDkdS1QhbikpnQkaDLWdmkndJJdxKiwG2gMqk1NzqaLGprms3XADAltfinEI/sxbhmvsY813Q==}
-    peerDependencies:
-      react: ^16.8 || ^17 || ^18
-      react-dom: ^16.8 || ^17 || ^18
-
-  '@cloudscape-design/global-styles@1.0.38':
-    resolution: {integrity: sha512-5LnYMODWXRG1WgawmcaQVI2n0DsFCIeI6iqfe+pAxCkfUX5pVeW/YZJlyZK6y9bV0K0k2ImN4FIWelGBypRI3g==}
-
-  '@cloudscape-design/test-utils-core@1.0.54':
-    resolution: {integrity: sha512-EM/U5/t8D4yKwFYL2ltlyAoqIb+b0r1kNW0dMvMwphmYYC6z1Bunl7L9JcHYhhX8MYC+5l2A3LuzznK7+Os4Zg==}
-
-  '@cloudscape-design/theming-runtime@1.0.71':
-    resolution: {integrity: sha512-IXGJ2Y/9R9+qVasXZ7wfOa0uXJpabVYjtJFhgd6+71SXLueyfS1qonPepbDrnm6TbYPFtRKQWWRzzUYN2wVeGg==}
-
   '@date-fns/tz@1.2.0':
     resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
-
-  '@dnd-kit/accessibility@3.1.1':
-    resolution: {integrity: sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw==}
-    peerDependencies:
-      react: '>=16.8.0'
-
-  '@dnd-kit/core@6.3.1':
-    resolution: {integrity: sha512-xkGBRQQab4RLwgXxoqETICr6S5JlogafbhNsidmrkVv2YRs5MLwpjoF2qpiGjQt8S9AoxtIV603s0GIUpY5eYQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-
-  '@dnd-kit/sortable@7.0.2':
-    resolution: {integrity: sha512-wDkBHHf9iCi1veM834Gbk1429bd4lHX4RpAwT0y2cHLf246GAvU2sVw/oxWNpPKQNQRQaeGXhAVgrOl1IT+iyA==}
-    peerDependencies:
-      '@dnd-kit/core': ^6.0.7
-      react: '>=16.8.0'
-
-  '@dnd-kit/utilities@3.2.2':
-    resolution: {integrity: sha512-+MKAJEOfaBe5SmV6t34p80MMKhjvUz0vRrvVJbPT0WElzaOJ/1xs+D+KDv+tD/NE5ujfrChEcshd4fLn0wpiqg==}
-    peerDependencies:
-      react: '>=16.8.0'
 
   '@emnapi/runtime@1.8.1':
     resolution: {integrity: sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg==}
@@ -2230,21 +2157,6 @@ packages:
 
   '@floating-ui/utils@0.2.9':
     resolution: {integrity: sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==}
-
-  '@formatjs/ecma402-abstract@2.3.4':
-    resolution: {integrity: sha512-qrycXDeaORzIqNhBOx0btnhpD1c+/qFIHAN9znofuMJX6QBwtbrmlpWfD4oiUUD2vJUOIYFA/gYtg2KAMGG7sA==}
-
-  '@formatjs/fast-memoize@2.2.7':
-    resolution: {integrity: sha512-Yabmi9nSvyOMrlSeGGWDiH7rf3a7sIwplbvo/dlz9WCIjzIQAfy1RMf4S0X3yG724n5Ghu2GmEl5NJIV6O9sZQ==}
-
-  '@formatjs/icu-messageformat-parser@2.11.2':
-    resolution: {integrity: sha512-AfiMi5NOSo2TQImsYAg8UYddsNJ/vUEv/HaNqiFjnI3ZFfWihUtD5QtuX6kHl8+H+d3qvnE/3HZrfzgdWpsLNA==}
-
-  '@formatjs/icu-skeleton-parser@1.8.14':
-    resolution: {integrity: sha512-i4q4V4qslThK4Ig8SxyD76cp3+QJ3sAqr7f6q9VVfeGtxG9OhiAk3y9XF6Q41OymsKzsGQ6OQQoJNY4/lI8TcQ==}
-
-  '@formatjs/intl-localematcher@0.6.1':
-    resolution: {integrity: sha512-ePEgLgVCqi2BBFnTMWPfIghu6FkbZnnBVhO2sSxvLfrdFw7wCHAHiDoM2h4NRgjbaY7+B7HgOLZGkK187pZTZg==}
 
   '@graphql-codegen/core@2.6.8':
     resolution: {integrity: sha512-JKllNIipPrheRgl+/Hm/xuWMw9++xNQ12XJR/OHHgFopOg4zmN3TdlRSyYcv/K90hCFkkIwhlHFUQTfKrm8rxQ==}
@@ -2641,22 +2553,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  '@juggle/resize-observer@3.4.0':
-    resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
-
   '@mui/core-downloads-tracker@6.4.10':
     resolution: {integrity: sha512-cblGjlM6+xsptwyaALw8RbRIUoqmKxOqLxlk2LkTDhxqUuql1YSOKKLH3w+Yd2QLz28b7MR65sx1OjsRZUfOSQ==}
-
-  '@mui/icons-material@6.1.7':
-    resolution: {integrity: sha512-RGzkeHNArIVy5ZQ12bq/8VYNeICEyngngsFskTJ/2hYKhIeIII3iRGtaZaSvLpXh7h3Fg3VKTulT+QU0w5K4XQ==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      '@mui/material': 6.1.7
-      '@types/react': ^17.0.0 || ^18.0.0 || ^19.0.0
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
 
   '@mui/material@6.1.7':
     resolution: {integrity: sha512-KsjujQL/A2hLd1PV3QboF+W6SSL5QqH6ZlSuQoeYz9r69+TnyBFIevbYLxdjJcJmGBjigL5pfpn7hTGop+vhSg==}
@@ -4193,9 +4091,6 @@ packages:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
     engines: {node: '>=6.5'}
 
-  ace-builds@1.39.1:
-    resolution: {integrity: sha512-HcJbBzx8qY66t9gZo/sQu7pi0wO/CFLdYn1LxQO1WQTfIkMfyc7LRnBpsp/oNCSSU/LL83jXHN1fqyOTuIhUjg==}
-
   agent-base@7.1.3:
     resolution: {integrity: sha512-jRR5wdylq8CkOe6hei19GGZnxM6rBGwFl3Bg0YItGDimvjGtAvdZk4Pu6Cl4u4Igsws4a1fd1Vq3ezrhn4KmFw==}
     engines: {node: '>= 14'}
@@ -4557,10 +4452,6 @@ packages:
     resolution: {integrity: sha512-JQHZ2QMW6l3aH/j6xCqQThY/9OH4D/9ls34cgkUBiEeocRTU04tHfKPBsUK1PqZCUQM7GiA0IIXJSuXHI64Kbg==}
     engines: {node: '>=0.8'}
 
-  clsx@1.2.1:
-    resolution: {integrity: sha512-EcR6r5a8bj6pu3ycsa/E/cKVGuTgZJZdsyUYHOksG/UHIiKfjxzRxYJpyVBwYaQeOvghal9fcc4PidlgzugAQg==}
-    engines: {node: '>=6'}
-
   clsx@2.1.1:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
@@ -4663,12 +4554,6 @@ packages:
   crypt@0.0.2:
     resolution: {integrity: sha512-mCxBlsHFYh9C+HVpiEacem8FEBnMXgU9gy4zmNC+SXAZNB/1idgp/aulFJ4FgCi7GPEVbfyng092GqL2k2rmow==}
 
-  css-selector-tokenizer@0.8.0:
-    resolution: {integrity: sha512-Jd6Ig3/pe62/qe5SBPTN8h8LeUg/pT4lLgtavPf7updwwHpvFzxvOQBHYj2LZDMjUnBzgvIUSjRcf6oT5HzHFg==}
-
-  css.escape@1.5.1:
-    resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
-
   cssesc@3.0.0:
     resolution: {integrity: sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==}
     engines: {node: '>=4'}
@@ -4679,12 +4564,6 @@ packages:
 
   csv-parse@5.6.0:
     resolution: {integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==}
-
-  d3-path@1.0.9:
-    resolution: {integrity: sha512-VLaYcn81dtHVTjEHd8B+pbe9yHWpXKZUC87PzoFmsFrJqgFwDe/qxfp5MlfsfM1V5E/iVt0MmEbWQ7FVIXh/bg==}
-
-  d3-shape@1.3.7:
-    resolution: {integrity: sha512-EUkvKjqPFUAZyOlhY5gzCxCeI0Aep04LwIRpsZ/mLFelJiUfnK56jo5JMDSE7yyP2kLSb6LtF+S5chMk7uqPqw==}
 
   data-uri-to-buffer@4.0.1:
     resolution: {integrity: sha512-0R9ikRb668HB7QDxT1vkpuUBtqc53YyAwMwGeUFKRojY/NWKvdZ+9UYtRfGmhqNbRkTSVpMbmyhXipFFv2cb/A==}
@@ -4708,10 +4587,6 @@ packages:
 
   date-fns-jalali@4.1.0-0:
     resolution: {integrity: sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg==}
-
-  date-fns@2.30.0:
-    resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
-    engines: {node: '>=0.11'}
 
   date-fns@4.1.0:
     resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
@@ -4744,9 +4619,6 @@ packages:
   decamelize@5.0.1:
     resolution: {integrity: sha512-VfxadyCECXgQlkoEAjeghAr5gY3Hf+IKjKb+X8tGVDtveCjN+USwprd2q3QXBR9T1+x2DG0XZF5/w+7HAtSaXA==}
     engines: {node: '>=10'}
-
-  decimal.js@10.5.0:
-    resolution: {integrity: sha512-8vDa8Qxvr/+d94hSh5P3IJwI5t8/c0KsMp+g8bNw9cY2icONa5aPfvKeieW1WlG0WQYwwhJ7mjui2xtiePQSXw==}
 
   default-browser-id@3.0.0:
     resolution: {integrity: sha512-OZ1y3y0SqSICtE8DE4S8YOE9UZOJ8wO16fKWVP5J1Qz42kV9jcnMVFrEE/noXb/ss3Q4pZIH79kxofzyNNtUNA==}
@@ -4984,9 +4856,6 @@ packages:
   fast-xml-parser@5.2.5:
     resolution: {integrity: sha512-pfX9uG9Ki0yekDHx2SiuRIyFdyAr1kMIMitPvb0YBo8SUfKvia7w7FIyd/l6av85pFYRhZscS75MwMnbvY+hcQ==}
     hasBin: true
-
-  fastparse@1.1.2:
-    resolution: {integrity: sha512-483XLLxTVIwWK3QTrMGRqUfUpoOs/0hbQrl2oz4J0pAcm3A3bu84wxTFqGqkJzewCLdME38xJLJAxBABfQT8sQ==}
 
   fastq@1.19.1:
     resolution: {integrity: sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ==}
@@ -5302,9 +5171,6 @@ packages:
   interpret@2.2.0:
     resolution: {integrity: sha512-Ju0Bz/cEia55xDwUWEa8+olFpCiQoypjnQySseKtmjNrnps3P+xfpUmGr90T7yjlVJmOtybRvPXhKMbHr+fWnw==}
     engines: {node: '>= 0.10'}
-
-  intl-messageformat@10.7.16:
-    resolution: {integrity: sha512-UmdmHUmp5CIKKjSoE10la5yfU+AYJAaiYLsodbjL4lji83JNvgOQUjGaGhGrpFCb0Uh7sl7qfP1IyILa8Z40ug==}
 
   invariant@2.2.4:
     resolution: {integrity: sha512-phJfQVBuaJM5raOpJjSfkiD6BpbCE4Ns//LaXl6wGYtUBY83nWS6Rf9tXm2e8VaK60JEjYldbPif/A2B1C2gNA==}
@@ -5753,10 +5619,6 @@ packages:
 
   mnemonist@0.38.3:
     resolution: {integrity: sha512-2K9QYubXx/NAjv4VLq1d1Ly8pWNC5L3BrixtdkyTegXWJIqY+zLNDhhX/A+ZwWt70tB1S8H4BE8FLYEFyNoOBw==}
-
-  mnth@2.0.0:
-    resolution: {integrity: sha512-3ZH4UWBGpAwCKdfjynLQpUDVZWMe6vRHwarIpMdGLUp89CVR9hjzgyWERtMyqx+fPEqQ/PsAxFwvwPxLFxW40A==}
-    engines: {node: '>=12.13.0'}
 
   ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
@@ -6238,11 +6100,6 @@ packages:
 
   react-is@19.1.0:
     resolution: {integrity: sha512-Oe56aUPnkHyyDxxkvqtd7KkdQP5uIUfHxd5XTb3wE9d/kRnZLmKbDB0GWk919tdQ+mxxPtG6EAs6RMT6i1qtHg==}
-
-  react-keyed-flatten-children@2.2.1:
-    resolution: {integrity: sha512-6yBLVO6suN8c/OcJk1mzIrUHdeEzf5rtRVBhxEXAHO49D7SlJ70cG4xrSJrBIAG7MMeQ+H/T151mM2dRDNnFaA==}
-    peerDependencies:
-      react: '>=15.0.0'
 
   react-remove-scroll-bar@2.3.8:
     resolution: {integrity: sha512-9r+yi9+mgU33AKcj6IbT9oRCO78WriSj6t/cF8DWBZJ9aOGPOTEDvdUDz1FwKim7QXWwmHqtdHnRJfhAxEG46Q==}
@@ -6935,9 +6792,6 @@ packages:
 
   webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
-
-  weekstart@1.1.0:
-    resolution: {integrity: sha512-ZO3I7c7J9nwGN1PZKZeBYAsuwWEsCOZi5T68cQoVNYrzrpp5Br0Bgi0OF4l8kH/Ez7nKfxa5mSsXjsgris3+qg==}
 
   whatwg-mimetype@4.0.0:
     resolution: {integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==}
@@ -11493,86 +11347,7 @@ snapshots:
 
   '@cdklabs/tskb@0.0.3': {}
 
-  '@cloudscape-design/board-components@3.0.95(@cloudscape-design/components@3.0.933(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      '@cloudscape-design/component-toolkit': 1.0.0-beta.92
-      '@cloudscape-design/components': 3.0.933(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      '@cloudscape-design/test-utils-core': 1.0.54
-      '@dnd-kit/utilities': 3.2.2(react@19.0.0-rc-cd22717c-20241013)
-      clsx: 1.2.1
-      react: 19.0.0-rc-cd22717c-20241013
-      react-dom: 19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013)
-
-  '@cloudscape-design/collection-hooks@1.0.67(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      react: 19.0.0-rc-cd22717c-20241013
-
-  '@cloudscape-design/component-toolkit@1.0.0-beta.92':
-    dependencies:
-      '@juggle/resize-observer': 3.4.0
-      tslib: 2.8.1
-
-  '@cloudscape-design/components@3.0.933(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      '@cloudscape-design/collection-hooks': 1.0.67(react@19.0.0-rc-cd22717c-20241013)
-      '@cloudscape-design/component-toolkit': 1.0.0-beta.92
-      '@cloudscape-design/test-utils-core': 1.0.54
-      '@cloudscape-design/theming-runtime': 1.0.71
-      '@dnd-kit/core': 6.3.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      '@dnd-kit/sortable': 7.0.2(@dnd-kit/core@6.3.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      '@dnd-kit/utilities': 3.2.2(react@19.0.0-rc-cd22717c-20241013)
-      '@juggle/resize-observer': 3.4.0
-      ace-builds: 1.39.1
-      balanced-match: 1.0.2
-      clsx: 1.2.1
-      d3-shape: 1.3.7
-      date-fns: 2.30.0
-      intl-messageformat: 10.7.16
-      mnth: 2.0.0
-      react: 19.0.0-rc-cd22717c-20241013
-      react-dom: 19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013)
-      react-keyed-flatten-children: 2.2.1(react@19.0.0-rc-cd22717c-20241013)
-      react-transition-group: 4.4.5(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      tslib: 2.8.1
-      weekstart: 1.1.0
-
-  '@cloudscape-design/global-styles@1.0.38': {}
-
-  '@cloudscape-design/test-utils-core@1.0.54':
-    dependencies:
-      css-selector-tokenizer: 0.8.0
-      css.escape: 1.5.1
-
-  '@cloudscape-design/theming-runtime@1.0.71':
-    dependencies:
-      tslib: 2.8.1
-
   '@date-fns/tz@1.2.0': {}
-
-  '@dnd-kit/accessibility@3.1.1(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      react: 19.0.0-rc-cd22717c-20241013
-      tslib: 2.8.1
-
-  '@dnd-kit/core@6.3.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      '@dnd-kit/accessibility': 3.1.1(react@19.0.0-rc-cd22717c-20241013)
-      '@dnd-kit/utilities': 3.2.2(react@19.0.0-rc-cd22717c-20241013)
-      react: 19.0.0-rc-cd22717c-20241013
-      react-dom: 19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013)
-      tslib: 2.8.1
-
-  '@dnd-kit/sortable@7.0.2(@dnd-kit/core@6.3.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      '@dnd-kit/core': 6.3.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)
-      '@dnd-kit/utilities': 3.2.2(react@19.0.0-rc-cd22717c-20241013)
-      react: 19.0.0-rc-cd22717c-20241013
-      tslib: 2.8.1
-
-  '@dnd-kit/utilities@3.2.2(react@19.0.0-rc-cd22717c-20241013)':
-    dependencies:
-      react: 19.0.0-rc-cd22717c-20241013
-      tslib: 2.8.1
 
   '@emnapi/runtime@1.8.1':
     dependencies:
@@ -11840,32 +11615,6 @@ snapshots:
       react-dom: 19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013)
 
   '@floating-ui/utils@0.2.9': {}
-
-  '@formatjs/ecma402-abstract@2.3.4':
-    dependencies:
-      '@formatjs/fast-memoize': 2.2.7
-      '@formatjs/intl-localematcher': 0.6.1
-      decimal.js: 10.5.0
-      tslib: 2.8.1
-
-  '@formatjs/fast-memoize@2.2.7':
-    dependencies:
-      tslib: 2.8.1
-
-  '@formatjs/icu-messageformat-parser@2.11.2':
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.3.4
-      '@formatjs/icu-skeleton-parser': 1.8.14
-      tslib: 2.8.1
-
-  '@formatjs/icu-skeleton-parser@1.8.14':
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.3.4
-      tslib: 2.8.1
-
-  '@formatjs/intl-localematcher@0.6.1':
-    dependencies:
-      tslib: 2.8.1
 
   '@graphql-codegen/core@2.6.8(graphql@15.10.1)':
     dependencies:
@@ -12292,17 +12041,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@juggle/resize-observer@3.4.0': {}
-
   '@mui/core-downloads-tracker@6.4.10': {}
-
-  '@mui/icons-material@6.1.7(@mui/material@6.1.7(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1)':
-    dependencies:
-      '@babel/runtime': 7.27.0
-      '@mui/material': 6.1.7(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1)
-      react: 19.0.0-rc-cd22717c-20241013
-    optionalDependencies:
-      '@types/react': types-react@19.0.0-rc.1
 
   '@mui/material@6.1.7(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(@emotion/styled@11.14.0(@emotion/react@11.14.0(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1))(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1)':
     dependencies:
@@ -14233,8 +13972,6 @@ snapshots:
     dependencies:
       event-target-shim: 5.0.1
 
-  ace-builds@1.39.1: {}
-
   agent-base@7.1.3: {}
 
   ajv@8.17.1:
@@ -14693,8 +14430,6 @@ snapshots:
 
   clone@1.0.4: {}
 
-  clsx@1.2.1: {}
-
   clsx@2.1.1: {}
 
   cmdk@1.1.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react-dom@19.0.0-rc.1)(types-react@19.0.0-rc.1):
@@ -14796,24 +14531,11 @@ snapshots:
 
   crypt@0.0.2: {}
 
-  css-selector-tokenizer@0.8.0:
-    dependencies:
-      cssesc: 3.0.0
-      fastparse: 1.1.2
-
-  css.escape@1.5.1: {}
-
   cssesc@3.0.0: {}
 
   csstype@3.1.3: {}
 
   csv-parse@5.6.0: {}
-
-  d3-path@1.0.9: {}
-
-  d3-shape@1.3.7:
-    dependencies:
-      d3-path: 1.0.9
 
   data-uri-to-buffer@4.0.1: {}
 
@@ -14839,10 +14561,6 @@ snapshots:
 
   date-fns-jalali@4.1.0-0: {}
 
-  date-fns@2.30.0:
-    dependencies:
-      '@babel/runtime': 7.27.0
-
   date-fns@4.1.0: {}
 
   debounce-promise@3.1.2: {}
@@ -14858,8 +14576,6 @@ snapshots:
   decamelize@1.2.0: {}
 
   decamelize@5.0.1: {}
-
-  decimal.js@10.5.0: {}
 
   default-browser-id@3.0.0:
     dependencies:
@@ -15200,8 +14916,6 @@ snapshots:
   fast-xml-parser@5.2.5:
     dependencies:
       strnum: 2.1.2
-
-  fastparse@1.1.2: {}
 
   fastq@1.19.1:
     dependencies:
@@ -15548,13 +15262,6 @@ snapshots:
       side-channel: 1.1.0
 
   interpret@2.2.0: {}
-
-  intl-messageformat@10.7.16:
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.3.4
-      '@formatjs/fast-memoize': 2.2.7
-      '@formatjs/icu-messageformat-parser': 2.11.2
-      tslib: 2.8.1
 
   invariant@2.2.4:
     dependencies:
@@ -15934,10 +15641,6 @@ snapshots:
   mnemonist@0.38.3:
     dependencies:
       obliterator: 1.6.1
-
-  mnth@2.0.0:
-    dependencies:
-      '@babel/runtime': 7.27.0
 
   ms@2.1.2: {}
 
@@ -16406,11 +16109,6 @@ snapshots:
   react-is@18.3.1: {}
 
   react-is@19.1.0: {}
-
-  react-keyed-flatten-children@2.2.1(react@19.0.0-rc-cd22717c-20241013):
-    dependencies:
-      react: 19.0.0-rc-cd22717c-20241013
-      react-is: 18.3.1
 
   react-remove-scroll-bar@2.3.8(react@19.0.0-rc-cd22717c-20241013)(types-react@19.0.0-rc.1):
     dependencies:
@@ -17150,8 +16848,6 @@ snapshots:
   web-streams-polyfill@3.3.3: {}
 
   webidl-conversions@3.0.1: {}
-
-  weekstart@1.1.0: {}
 
   whatwg-mimetype@4.0.0: {}
 
