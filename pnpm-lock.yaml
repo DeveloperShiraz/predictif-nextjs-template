@@ -145,24 +145,12 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.1.4
         version: 1.1.8(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react-dom@19.0.0-rc.1)(types-react@19.0.0-rc.1)
-      '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.10(tailwindcss@3.4.4)
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6
-      autoprefixer:
-        specifier: 10.4.19
-        version: 10.4.19(postcss@8.4.38)
       aws-amplify:
         specifier: ^6.13.0
         version: 6.14.1
-      aws-cdk:
-        specifier: ^2.1105.0
-        version: 2.1105.0
-      aws-cdk-lib:
-        specifier: ^2.238.0
-        version: 2.238.0(constructs@10.4.5)
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.1
@@ -175,9 +163,6 @@ importers:
       cmdk:
         specifier: ^1.0.4
         version: 1.1.1(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(types-react-dom@19.0.0-rc.1)(types-react@19.0.0-rc.1)
-      constructs:
-        specifier: ^10.4.5
-        version: 10.4.5
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -205,9 +190,6 @@ importers:
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
-      postcss:
-        specifier: 8.4.38
-        version: 8.4.38
       react:
         specifier: 19.0.0-rc-cd22717c-20241013
         version: 19.0.0-rc-cd22717c-20241013
@@ -235,12 +217,6 @@ importers:
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.6.0
-      tailwindcss:
-        specifier: 3.4.4
-        version: 3.4.4
-      tailwindcss-animate:
-        specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.4)
       use-debounce:
         specifier: ^10.0.1
         version: 10.0.4(react@19.0.0-rc-cd22717c-20241013)
@@ -257,6 +233,9 @@ importers:
       '@aws-amplify/backend-cli':
         specifier: ^1.4.2
         version: 1.5.0(@aws-sdk/types@3.957.0)(@types/node@20.17.28)(aws-cdk-lib@2.238.0(constructs@10.4.5))(aws-cdk@2.1105.0)(constructs@10.4.5)(react-dom@19.0.0-rc-cd22717c-20241013(react@19.0.0-rc-cd22717c-20241013))(react@19.0.0-rc-cd22717c-20241013)(typescript@5.5.2)
+      '@tailwindcss/forms':
+        specifier: ^0.5.7
+        version: 0.5.10(tailwindcss@3.4.4)
       '@types/node':
         specifier: ^20.14.8
         version: 20.17.28
@@ -266,9 +245,30 @@ importers:
       '@types/react-dom':
         specifier: npm:types-react-dom@19.0.0-rc.1
         version: types-react-dom@19.0.0-rc.1
+      autoprefixer:
+        specifier: 10.4.19
+        version: 10.4.19(postcss@8.4.38)
+      aws-cdk:
+        specifier: ^2.1105.0
+        version: 2.1105.0
+      aws-cdk-lib:
+        specifier: ^2.238.0
+        version: 2.238.0(constructs@10.4.5)
+      constructs:
+        specifier: ^10.4.5
+        version: 10.4.5
       esbuild:
         specifier: ^0.27.2
         version: 0.27.2
+      postcss:
+        specifier: 8.4.38
+        version: 8.4.38
+      tailwindcss:
+        specifier: 3.4.4
+        version: 3.4.4
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.4)
       tsx:
         specifier: ^4.19.2
         version: 4.19.3

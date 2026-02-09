@@ -18,9 +18,28 @@ applications:
             - rm -rf .next/turbopack
             - rm -rf .next/trace*
             - rm -rf .next/standalone
+            # Delete build-only packages from node_modules (not needed for SSR runtime)
+            # These are only needed during CDK deploy (backend) or compilation
+            - rm -rf node_modules/aws-cdk-lib
+            - rm -rf node_modules/aws-cdk
+            - rm -rf node_modules/@aws-cdk
+            - rm -rf node_modules/constructs
+            - rm -rf node_modules/typescript
+            - rm -rf node_modules/esbuild
+            - rm -rf node_modules/@esbuild
+            - rm -rf node_modules/@swc
+            - rm -rf node_modules/.pnpm/aws-cdk-lib*
+            - rm -rf node_modules/.pnpm/aws-cdk@*
+            - rm -rf node_modules/.pnpm/@aws-cdk*
+            - rm -rf node_modules/.pnpm/constructs*
+            - rm -rf node_modules/.pnpm/typescript@*
+            - rm -rf node_modules/.pnpm/esbuild@*
+            - rm -rf node_modules/.pnpm/@esbuild*
+            - rm -rf node_modules/.pnpm/@swc*
             # Show size of build output for debugging
             - du -sh .next
             - du -sh .next/* 2>/dev/null || true
+            - du -sh node_modules 2>/dev/null || true
       artifacts:
         baseDirectory: .next
         files:
