@@ -66,34 +66,34 @@ const Dashboard: NextPage = () => {
 
   return (
     <div className="p-6">
-      <Heading size="sm" className="text-[#000000] mb-6">
+      <Heading size="sm" className="text-foreground mb-6">
         Admin Dashboard
       </Heading>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Dashboard Stats Cards */}
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Total Reports</h3>
-          <p className="text-3xl font-bold text-gray-900">{loadingStats ? "-" : stats.total}</p>
+        <div className="bg-card text-card-foreground rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Total Reports</h3>
+          <p className="text-3xl font-bold">{loadingStats ? "-" : stats.total}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Pending Review</h3>
-          <p className="text-3xl font-bold text-yellow-600">{loadingStats ? "-" : stats.pending}</p>
+        <div className="bg-card text-card-foreground rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Pending Review</h3>
+          <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-500">{loadingStats ? "-" : stats.pending}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">Resolved</h3>
-          <p className="text-3xl font-bold text-green-600">{loadingStats ? "-" : stats.resolved}</p>
+        <div className="bg-card text-card-foreground rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">Resolved</h3>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-500">{loadingStats ? "-" : stats.resolved}</p>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Welcome, Admin</h2>
-        <p className="text-gray-600 mb-4">
-          You are logged in as: <span className="font-medium">{userEmail}</span>
+      <div className="bg-card text-card-foreground rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold mb-4">Welcome, Admin</h2>
+        <p className="text-muted-foreground mb-4">
+          You are logged in as: <span className="font-medium text-foreground">{userEmail}</span>
         </p>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Use the navigation menu to manage incident reports, users, and view analytics.
         </p>
       </div>

@@ -489,7 +489,7 @@ export function IncidentReportForm({
                     disabled={loadingCompanies}
                   >
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className={cn(!field.value && "text-muted-foreground")}>
                         <SelectValue placeholder={loadingCompanies ? "Loading companies..." : "Select a company"} />
                       </SelectTrigger>
                     </FormControl>

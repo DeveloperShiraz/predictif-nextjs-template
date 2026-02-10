@@ -140,16 +140,16 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
     // Check for pending OR analyzing status
     if (analysisData.status === 'pending' || analysisData.status === 'analyzing') {
         return (
-            <Card className="mt-8 border-blue-100 bg-blue-50/10 overflow-hidden shadow-sm animate-pulse">
+            <Card className="mt-8 border-blue-100 bg-blue-50/10 dark:bg-blue-900/10 overflow-hidden shadow-sm animate-pulse">
                 <CardContent className="p-8 flex flex-col items-center justify-center text-center space-y-4">
-                    <div className="bg-blue-100 p-4 rounded-full">
-                        <Zap className="w-8 h-8 text-blue-600 animate-bounce" />
+                    <div className="bg-blue-100 dark:bg-blue-900/20 p-4 rounded-full">
+                        <Zap className="w-8 h-8 text-blue-600 dark:text-blue-400 animate-bounce" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-gray-900">AI Analysis in Progress</h3>
-                        <p className="text-sm text-gray-500">Processing images and generating damage assessment...</p>
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">AI Analysis in Progress</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Processing images and generating damage assessment...</p>
                     </div>
-                    <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full max-w-xs h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                         <div className="h-full bg-blue-500 animate-[progress_2s_ease-in-out_infinite]" style={{ width: '50%' }}></div>
                     </div>
                 </CardContent>
@@ -161,10 +161,10 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
 
     const getMatchColor = (match: string) => {
         switch (match) {
-            case 'match': return 'bg-green-100 text-green-800 border-green-200';
-            case 'partial_match': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            case 'no_match': return 'bg-red-100 text-red-800 border-red-200';
-            default: return 'bg-gray-100 text-gray-800 border-gray-200';
+            case 'match': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+            case 'partial_match': return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
+            case 'no_match': return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
+            default: return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
         }
     };
 
@@ -176,8 +176,8 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
 
     return (
         <>
-            <Card className="mt-8 border-blue-100 bg-blue-50/20 overflow-hidden shadow-sm">
-                <CardHeader className="bg-blue-600 text-white p-6">
+            <Card className="mt-8 border-blue-100 dark:border-blue-900/50 bg-blue-50/20 dark:bg-blue-900/10 overflow-hidden shadow-sm">
+                <CardHeader className="bg-blue-600 dark:bg-blue-700 text-white p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
                             <div className="bg-white/20 p-2 rounded-lg">
@@ -199,15 +199,15 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                 <CardContent className="p-6 space-y-8">
                     {/* Debugging Alerts */}
                     {(analysisData as any).copy_warnings && (analysisData as any).copy_warnings.length > 0 && (
-                        <div className="bg-red-50 border border-red-200 rounded-md p-4 space-y-2">
-                            <h4 className="text-red-800 font-bold text-sm flex items-center gap-2">
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 space-y-2">
+                            <h4 className="text-red-800 dark:text-red-300 font-bold text-sm flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4" /> Backend Copy Failures
                             </h4>
-                            <ul className="text-xs text-red-700 list-disc pl-5">
+                            <ul className="text-xs text-red-700 dark:text-red-400 list-disc pl-5">
                                 {(analysisData as any).copy_warnings.map((w: any, i: number) => (
                                     <li key={i}>
                                         <span className="font-semibold">{w.name}:</span> {w.error} <br />
-                                        <span className="text-red-700/60 break-all">{w.uri}</span>
+                                        <span className="text-red-700/60 dark:text-red-400/60 break-all">{w.uri}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -215,11 +215,11 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                     )}
 
                     {loadErrors.length > 0 && (
-                        <div className="bg-orange-50 border border-orange-200 rounded-md p-4 space-y-2">
-                            <h4 className="text-orange-800 font-bold text-sm flex items-center gap-2">
+                        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md p-4 space-y-2">
+                            <h4 className="text-orange-800 dark:text-orange-300 font-bold text-sm flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4" /> Frontend Loading Failures
                             </h4>
-                            <ul className="text-xs text-orange-700 list-disc pl-5">
+                            <ul className="text-xs text-orange-700 dark:text-orange-400 list-disc pl-5">
                                 {loadErrors.map((e, i) => (
                                     <li key={i}>{e}</li>
                                 ))}
@@ -228,33 +228,33 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                     )}
                     {/* Top Section: Final Assessment & Peril Match */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm transition-all hover:border-blue-300">
-                            <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-3">AI Verdict</h4>
+                        <div className="bg-card p-5 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm transition-all hover:border-blue-300 dark:hover:border-blue-700">
+                            <h4 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-3">AI Verdict</h4>
                             <div className="flex items-center gap-4 mb-3">
-                                <span className="text-3xl font-black text-gray-900 capitalize tracking-tighter">
+                                <span className="text-3xl font-black text-foreground capitalize tracking-tighter">
                                     {analysisData.final_assessment}
                                 </span>
-                                <div className="bg-green-100 p-1 rounded-full">
-                                    <CheckCircle2 className="w-6 h-6 text-green-600" />
+                                <div className="bg-green-100 dark:bg-green-900/30 p-1 rounded-full">
+                                    <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
                                 </div>
                             </div>
-                            <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                                Primary damage identified as <span className="text-blue-700 font-bold">{analysisData.final_assessment}</span>.
+                            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                                Primary damage identified as <span className="text-blue-700 dark:text-blue-400 font-bold">{analysisData.final_assessment}</span>.
                             </p>
                         </div>
 
-                        <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm transition-all hover:border-blue-300">
-                            <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-3">Peril Match Analysis</h4>
+                        <div className="bg-card p-5 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm transition-all hover:border-blue-300 dark:hover:border-blue-700">
+                            <h4 className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-[0.2em] mb-3">Peril Match Analysis</h4>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase">Reported Peril</span>
-                                    <span className="text-sm font-bold text-gray-800 capitalize">{analysisData.peril_match.reported_peril}</span>
+                                    <span className="text-[10px] text-muted-foreground font-bold uppercase">Reported Peril</span>
+                                    <span className="text-sm font-bold text-foreground capitalize">{analysisData.peril_match.reported_peril}</span>
                                 </div>
                                 <Badge className={`${getMatchColor(analysisData.peril_match.match)} border px-2 py-0.5 font-bold text-[10px]`}>
                                     {analysisData.peril_match.match.replace('_', ' ').toUpperCase()}
                                 </Badge>
                             </div>
-                            <p className="text-xs text-gray-500 italic leading-normal border-l-2 border-blue-200 pl-3">
+                            <p className="text-xs text-muted-foreground italic leading-normal border-l-2 border-blue-200 dark:border-blue-800 pl-3">
                                 "{analysisData.peril_match.reason}"
                             </p>
                         </div>
@@ -262,8 +262,8 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
 
                     {/* Analyzed Image Gallery */}
                     {imageUrls.size > 0 && (
-                        <div className="bg-white p-5 rounded-xl border border-blue-100 shadow-sm">
-                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <div className="bg-card p-5 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
+                            <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <ImageIcon className="w-4 h-4 text-blue-500" />
                                 Analyzed Imagery ({imageUrls.size})
                             </h4>
@@ -278,13 +278,13 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                     return (
                                         <div key={idx} className="flex flex-col gap-2">
                                             <div
-                                                className="rounded-lg overflow-hidden border border-gray-200 aspect-video relative group cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all shadow-sm"
+                                                className="rounded-lg overflow-hidden border border-border aspect-video relative group cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all shadow-sm"
                                                 onClick={() => setSelectedImage({ path, url })}
                                             >
                                                 <img
                                                     src={url}
                                                     alt={`AI Analyzed ${idx + 1}`}
-                                                    className="w-full h-full object-contain bg-gray-50 transition-transform group-hover:scale-105"
+                                                    className="w-full h-full object-contain bg-muted/20 transition-transform group-hover:scale-105"
                                                 />
                                                 <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md">
                                                     Img {idx + 1}
@@ -295,20 +295,20 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                             </div>
 
                                             {/* Detections specific to this image (Grid View) */}
-                                            <div className="bg-gray-50 rounded-md p-3 border border-gray-100 flex-1">
-                                                <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Visual Detections</h5>
+                                            <div className="bg-muted/30 rounded-md p-3 border border-border flex-1">
+                                                <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Visual Detections</h5>
                                                 {imageDetections.length > 0 ? (
                                                     <div className="space-y-2">
                                                         {imageDetections.map((d, i) => (
-                                                            <div key={i} className="flex flex-col gap-1 text-xs border-b border-gray-200 last:border-0 pb-2 last:pb-0">
+                                                            <div key={i} className="flex flex-col gap-1 text-xs border-b border-border last:border-0 pb-2 last:pb-0">
                                                                 <div className="flex items-start gap-2">
-                                                                    <Badge className="px-1 py-0 h-4 text-[9px] bg-blue-100 text-blue-700 border-none shrink-0">
+                                                                    <Badge className="px-1 py-0 h-4 text-[9px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-none shrink-0">
                                                                         {Math.round(d.confidence * 100)}%
                                                                     </Badge>
-                                                                    <span className="font-medium text-gray-700 leading-tight">{d.label}</span>
+                                                                    <span className="font-medium text-foreground leading-tight">{d.label}</span>
                                                                 </div>
                                                                 {d.notes && (
-                                                                    <p className="text-[10px] text-gray-500 italic pl-6 leading-normal">
+                                                                    <p className="text-[10px] text-muted-foreground italic pl-6 leading-normal">
                                                                         "{d.notes}"
                                                                     </p>
                                                                 )}
@@ -316,7 +316,7 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <p className="text-[10px] text-gray-400 italic">No specific detections marked on this image.</p>
+                                                    <p className="text-[10px] text-muted-foreground italic">No specific detections marked on this image.</p>
                                                 )}
                                             </div>
                                         </div>
@@ -327,25 +327,25 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                     )}
 
                     {/* Evidence & Fraud Section (Global) */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-blue-100/50">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-blue-100/50 dark:border-blue-900/30">
                         <div className="md:col-span-2 space-y-4">
-                            <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-green-600" />
+                            <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                                <ShieldCheck className="w-4 h-4 text-green-600 dark:text-green-500" />
                                 Evidence Bullets
                             </h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
                                 {Array.from(new Set(analysisData.evidence_bullets)).map((bullet, idx) => (
-                                    <div key={idx} className="text-[11px] text-gray-700 flex items-start gap-3 bg-white/50 p-2 rounded-lg border border-transparent hover:border-green-100 transition-colors">
-                                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0 shadow-sm shadow-green-200" />
+                                    <div key={idx} className="text-[11px] text-foreground flex items-start gap-3 bg-card/50 p-2 rounded-lg border border-transparent hover:border-green-100 dark:hover:border-green-900/30 transition-colors">
+                                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1 flex-shrink-0 shadow-sm shadow-green-200 dark:shadow-none" />
                                         <span className="leading-tight">{bullet}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-red-50/40 p-5 rounded-2xl border border-red-100 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-8 -mr-6 -mt-6 bg-red-100/50 rounded-full group-hover:scale-110 transition-transform" />
-                            <h4 className="text-xs font-black text-red-800 uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10">
+                        <div className="bg-red-50/40 dark:bg-red-900/10 p-5 rounded-2xl border border-red-100 dark:border-red-900/30 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 -mr-6 -mt-6 bg-red-100/50 dark:bg-red-900/20 rounded-full group-hover:scale-110 transition-transform" />
+                            <h4 className="text-xs font-black text-red-800 dark:text-red-300 uppercase tracking-widest mb-4 flex items-center gap-2 relative z-10">
                                 <ShieldAlert className="w-4 h-4" />
                                 Risk Indicators
                             </h4>
@@ -391,18 +391,18 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                     return (
                                         <>
                                             {displaySignals.map((item, idx) => (
-                                                <div key={idx} className="text-[10px] text-red-700 font-bold flex items-start gap-3 bg-white/40 p-2 rounded-lg border border-red-200/30">
+                                                <div key={idx} className="text-[10px] text-red-700 dark:text-red-300 font-bold flex items-start gap-3 bg-white/40 dark:bg-black/20 p-2 rounded-lg border border-red-200/30 dark:border-red-800/30">
                                                     <AlertTriangle className="w-3 h-3 mt-0.5 flex-shrink-0 text-red-500" />
                                                     <span className="leading-snug">
                                                         {item.text}
                                                         {item.count > 1 && (
-                                                            <span className="ml-2 px-1.5 py-0.5 bg-red-100 text-red-800 rounded-full text-[9px]">x{item.count}</span>
+                                                            <span className="ml-2 px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200 rounded-full text-[9px]">x{item.count}</span>
                                                         )}
                                                     </span>
                                                 </div>
                                             ))}
                                             {displaySignals.length === 0 && (
-                                                <p className="text-xs text-green-700 italic font-medium">No fraud signals identified by current model params.</p>
+                                                <p className="text-xs text-green-700 dark:text-green-400 italic font-medium">No fraud signals identified by current model params.</p>
                                             )}
                                         </>
                                     );
@@ -417,21 +417,21 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
             {selectedImage && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-in fade-in duration-200" onClick={() => setSelectedImage(null)}>
                     <div
-                        className="bg-white rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200"
+                        className="bg-card rounded-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-200"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white z-10">
+                        <div className="flex items-center justify-between p-4 border-b border-border bg-card z-10">
                             <div className="flex items-center gap-3">
                                 <ImageIcon className="w-5 h-5 text-blue-600" />
                                 <div>
-                                    <h3 className="font-bold text-gray-800">Detailed Analysis</h3>
-                                    <p className="text-xs text-gray-500">Image {Array.from(imageUrls.keys()).indexOf(selectedImage.path) + 1} of {imageUrls.size}</p>
+                                    <h3 className="font-bold text-foreground">Detailed Analysis</h3>
+                                    <p className="text-xs text-muted-foreground">Image {Array.from(imageUrls.keys()).indexOf(selectedImage.path) + 1} of {imageUrls.size}</p>
                                 </div>
                             </div>
                             <button
                                 onClick={() => setSelectedImage(null)}
-                                className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+                                className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground"
                             >
                                 <span className="sr-only">Close</span>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -471,7 +471,7 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                             )}
 
                             {/* Image Side */}
-                            <div className="flex-1 bg-gray-50/50 p-6 flex items-center justify-center min-h-[400px] border-b md:border-b-0 md:border-r border-gray-100 relative">
+                            <div className="flex-1 bg-muted/20 p-6 flex items-center justify-center min-h-[400px] border-b md:border-b-0 md:border-r border-border relative">
                                 <img
                                     src={selectedImage.url}
                                     alt="Detailed View"
@@ -509,32 +509,32 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                             </div>
 
                             {/* Detections Side (Sidebar) */}
-                            <div className="w-full md:w-[400px] bg-white flex flex-col border-l border-gray-100 shadow-xl z-30">
-                                <div className="p-5 border-b border-gray-100 bg-gray-50/50">
-                                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                            <div className="w-full md:w-[400px] bg-card flex flex-col border-l border-border shadow-xl z-30">
+                                <div className="p-5 border-b border-border bg-muted/20">
+                                    <h4 className="text-xs font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
                                         <Info className="w-4 h-4 text-blue-500" />
                                         Visual Detections ({selectedDetections.length})
                                     </h4>
                                 </div>
 
-                                <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/30">
+                                <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-muted/10">
                                     {selectedDetections.length > 0 ? (
                                         selectedDetections.map((detection, idx) => (
-                                            <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all">
+                                            <div key={idx} className="bg-card p-4 rounded-xl border border-border shadow-sm hover:shadow-md transition-all">
                                                 <div className="flex items-center justify-between mb-3">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-2 h-8 bg-blue-500 rounded-full"></div>
-                                                        <span className="font-bold text-gray-900 capitalize text-sm">{detection.label}</span>
+                                                        <span className="font-bold text-foreground capitalize text-sm">{detection.label}</span>
                                                     </div>
-                                                    <Badge className="bg-blue-600 text-white border-none shadow-sm shadow-blue-200">
+                                                    <Badge className="bg-blue-600 text-white border-none shadow-sm shadow-blue-200 dark:shadow-none">
                                                         {Math.round(detection.confidence * 100)}%
                                                     </Badge>
                                                 </div>
-                                                <p className="text-xs text-gray-600 italic bg-gray-50 p-3 rounded-lg border border-gray-100 leading-relaxed">
+                                                <p className="text-xs text-muted-foreground italic bg-muted/30 p-3 rounded-lg border border-border leading-relaxed">
                                                     "{detection.notes}"
                                                 </p>
                                                 {detection.bbox && (
-                                                    <div className="mt-3 text-[9px] text-gray-400 font-mono bg-gray-100/50 p-1.5 rounded w-fit">
+                                                    <div className="mt-3 text-[9px] text-muted-foreground font-mono bg-muted/50 p-1.5 rounded w-fit">
                                                         Region: [{detection.bbox.map(n => Math.round(n)).join(', ')}]
                                                     </div>
                                                 )}
@@ -542,11 +542,11 @@ export function AIAnalysisDisplay({ analysis, reportId }: AIAnalysisDisplayProps
                                         ))
                                     ) : (
                                         <div className="text-center py-12 px-6">
-                                            <div className="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                                                <Info className="w-8 h-8 text-gray-300" />
+                                            <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Info className="w-8 h-8 text-muted-foreground" />
                                             </div>
-                                            <p className="text-gray-900 font-medium mb-1">No Detections</p>
-                                            <p className="text-xs text-gray-500">There are no specific visual detections mapped to this image region.</p>
+                                            <p className="text-foreground font-medium mb-1">No Detections</p>
+                                            <p className="text-xs text-muted-foreground">There are no specific visual detections mapped to this image region.</p>
                                         </div>
                                     )}
                                 </div>

@@ -35,11 +35,11 @@ export const inputVariants = cva(
     variants: {
       variant: {
         default:
-          "h-9 rounded-md border border-zinc-200 dark:border-zinc-700 px-3 py-1 focus:border-blue-600 dark:focus:border-white transition-all duration-300",
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
 
         underlined: `h-8 px-0 py-1 
-          border-b border-zinc-200 dark:border-zinc-700
-          focus:border-b border-b-[1px] focus:border-blue-600 dark:focus:border-white
+          border-b border-input
+          focus:border-b border-b-[1px] focus:border-blue-600 dark:focus:border-blue-400
           transition-colors duration-300`,
       },
     },
@@ -51,7 +51,7 @@ export const inputVariants = cva(
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement>,
-    VariantProps<typeof inputVariants> {}
+  VariantProps<typeof inputVariants> { }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, variant, ...props }, ref) => {

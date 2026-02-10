@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { cva, VariantProps } from "class-variance-authority";
 
 const headingVariants = cva(
-  "text-black dark:text-white lg:text-left leading-tight tracking-tighter",
+  "text-foreground lg:text-left leading-tight tracking-tighter",
   {
     variants: {
       size: {
@@ -23,7 +23,7 @@ const headingVariants = cva(
 
 interface HeadingProps
   extends React.HTMLAttributes<HTMLHeadingElement>,
-    VariantProps<typeof headingVariants> {}
+  VariantProps<typeof headingVariants> { }
 
 const Heading: FC<HeadingProps> = ({ children, className, size, ...props }) => {
   return (

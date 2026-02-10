@@ -910,7 +910,7 @@ export default function ReportsPage() {
   return (
     <div className="p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <Heading size="sm" className="text-[#000000]">
+        <Heading size="sm" className="text-foreground">
           Incident Reports
         </Heading>
         <div className="flex items-center gap-3">
@@ -973,17 +973,17 @@ export default function ReportsPage() {
           {filteredReports.map((report) => (
             <div
               key={report.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+              className="bg-card text-card-foreground border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <h3 className="text-lg font-semibold mb-1">
                     {report.firstName} {report.lastName}
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Claim #: <span className="font-mono text-xs font-semibold">{report.claimNumber}</span>
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     ID: <span className="font-mono text-xs">{report.id}</span>
                   </p>
                   {/* Show company name for SuperAdmin */}
@@ -1018,13 +1018,13 @@ export default function ReportsPage() {
                       onClick={() => handleAnalyze(report.id)}
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-1 border-blue-200 text-blue-700 hover:bg-blue-50"
+                      className="flex items-center gap-1 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                       disabled={analyzingId === report.id}
                     >
                       {analyzingId === report.id ? (
                         <RefreshCw className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Zap className="w-4 h-4 fill-blue-600" />
+                        <Zap className="w-4 h-4 fill-blue-600 dark:fill-blue-400" />
                       )}
                       {analyzingId === report.id ? "Analyzing..." : "Analyze with AI"}
                     </Button>
@@ -1034,7 +1034,7 @@ export default function ReportsPage() {
                     onClick={() => handleExportPDF(report)}
                     variant="outline"
                     size="sm"
-                    className="flex items-center gap-1 border-gray-200 text-gray-700 hover:bg-gray-50"
+                    className="flex items-center gap-1 text-foreground hover:bg-accent hover:text-accent-foreground"
                   >
                     <FileText className="w-4 h-4" />
                     Export
@@ -1044,7 +1044,7 @@ export default function ReportsPage() {
                       onClick={() => handleEdit(report)}
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-1"
+                      className="flex items-center gap-1 text-foreground hover:bg-accent hover:text-accent-foreground"
                     >
                       <Edit className="w-4 h-4" />
                       Edit
@@ -1056,7 +1056,7 @@ export default function ReportsPage() {
                       onClick={() => handleDelete(report.id)}
                       variant="outline"
                       size="sm"
-                      className="flex items-center gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="flex items-center gap-1 text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300"
                       disabled={deletingId === report.id}
                     >
                       {deletingId === report.id ? (
@@ -1072,39 +1072,39 @@ export default function ReportsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Contact</p>
-                  <p className="text-sm text-gray-900">{report.email}</p>
-                  <p className="text-sm text-gray-900">{report.phone}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Contact</p>
+                  <p className="text-sm text-foreground">{report.email}</p>
+                  <p className="text-sm text-foreground">{report.phone}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Location</p>
-                  <p className="text-sm text-gray-900">
+                  <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Location</p>
+                  <p className="text-sm text-foreground">
                     {report.address}
                     {report.apartment && `, Apt ${report.apartment}`}
                   </p>
-                  <p className="text-sm text-gray-900">
+                  <p className="text-sm text-foreground">
                     {report.city}, {report.state} {report.zip}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Incident Date</p>
-                  <p className="text-sm text-gray-900">{formatDateOnly(report.incidentDate)}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Incident Date</p>
+                  <p className="text-sm text-foreground">{formatDateOnly(report.incidentDate)}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Submitted</p>
-                  <p className="text-sm text-gray-900">{formatDate(report.submittedAt || report.createdAt)}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Submitted</p>
+                  <p className="text-sm text-foreground">{formatDate(report.submittedAt || report.createdAt)}</p>
                 </div>
               </div>
 
               <div className="mb-4">
-                <p className="text-xs font-medium text-gray-500 uppercase mb-1">Description</p>
-                <p className="text-sm text-gray-900 whitespace-pre-wrap">{report.description}</p>
+                <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Description</p>
+                <p className="text-sm text-foreground whitespace-pre-wrap">{report.description}</p>
               </div>
 
               {report.shingleExposure && (
                 <div className="mb-4">
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Shingle Exposure</p>
-                  <p className="text-sm text-gray-900">{report.shingleExposure} inches</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Shingle Exposure</p>
+                  <p className="text-sm text-foreground">{report.shingleExposure} inches</p>
                 </div>
               )}
 
@@ -1117,28 +1117,28 @@ export default function ReportsPage() {
                   if (!weather) return null;
 
                   return (
-                    <div className="mb-4 bg-gray-50 p-4 rounded-md border border-gray-100">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <div className="mb-4 bg-muted/50 p-4 rounded-md border border-gray-100 dark:border-gray-700">
+                      <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         Weather Details
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {weather.reported_hail_size_inches && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Hail Size</p>
-                            <p className="text-sm text-gray-900">{weather.reported_hail_size_inches} inches</p>
+                            <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Hail Size</p>
+                            <p className="text-sm text-foreground">{weather.reported_hail_size_inches} inches</p>
                           </div>
                         )}
                         {weather.weather_date && (
                           <div>
-                            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Weather Date</p>
-                            <p className="text-sm text-gray-900">{formatDateOnly(weather.weather_date)}</p>
+                            <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Weather Date</p>
+                            <p className="text-sm text-foreground">{formatDateOnly(weather.weather_date)}</p>
                           </div>
                         )}
                         {weather.weather_description && (
                           <div className="md:col-span-2">
-                            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Description</p>
-                            <p className="text-sm text-gray-900 italic">"{weather.weather_description}"</p>
+                            <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Description</p>
+                            <p className="text-sm text-foreground italic">"{weather.weather_description}"</p>
                           </div>
                         )}
                       </div>
@@ -1152,7 +1152,7 @@ export default function ReportsPage() {
 
               {photoUrlsMap[report.id] && photoUrlsMap[report.id].length > 0 && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-2">Photos</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase mb-2">Photos</p>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {photoUrlsMap[report.id].map((signedUrl, index) => (
                       <div key={index} className="relative group">
@@ -1171,7 +1171,7 @@ export default function ReportsPage() {
                             <Download className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                           </div>
                         </a>
-                        <p className="text-xs text-gray-600 mt-1 text-center">Photo {index + 1}</p>
+                        <p className="text-xs text-muted-foreground mt-1 text-center">Photo {index + 1}</p>
                       </div>
                     ))}
                   </div>

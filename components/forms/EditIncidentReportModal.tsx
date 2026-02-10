@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { cn } from "@/lib/utils";
 
 import { CalendarIcon, X, Upload, Trash2 } from "@/components/Icons";
 import { getUrl, uploadData, remove } from "aws-amplify/storage";
@@ -593,7 +594,7 @@ export function EditIncidentReportModal({
                     <FormLabel>Status</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className={cn(!field.value && "text-muted-foreground")}>
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>

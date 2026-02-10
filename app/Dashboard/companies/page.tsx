@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/lib/auth/useUserRole";
+import Heading from "@/components/ui/Heading";
 import { useCompany } from "@/contexts/CompanyContext";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -266,11 +267,11 @@ export default function CompaniesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Heading size="sm" className="flex items-center gap-2 text-foreground">
             <Building className="h-8 w-8" />
             Company Management
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          </Heading>
+          <p className="text-muted-foreground mt-1">
             Manage all companies in the system
           </p>
         </div>
@@ -310,7 +311,7 @@ export default function CompaniesPage() {
         <Card className="p-8 text-center">
           <Building className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-semibold mb-2">No Companies Yet</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-muted-foreground mb-4">
             Get started by creating your first company
           </p>
           <Button onClick={() => setIsAddDialogOpen(true)}>
@@ -355,7 +356,7 @@ export default function CompaniesPage() {
                 <div className="space-y-3">
                   {/* User Count */}
                   <div className="flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <span className="flex items-center gap-2 text-muted-foreground">
                       <Users className="h-4 w-4" />
                       Users
                     </span>
@@ -385,14 +386,14 @@ export default function CompaniesPage() {
                         </>
                       )}
                     </Button>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
                       Share this link for public incident reports
                     </p>
                   </div>
 
                   {/* Created Date */}
                   {company.createdAt && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-muted-foreground">
                       Created: {new Date(company.createdAt).toLocaleDateString()}
                     </div>
                   )}

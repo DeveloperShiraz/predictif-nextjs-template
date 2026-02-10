@@ -16,6 +16,8 @@ import { ResetPassword } from "@/components/ResetPassword";
 import { LoadingSpinner, AlreadyAuthenticatedSpinner } from "@/components/ui/LoadingSpinner";
 import { Button } from "@/components/ui/Button";
 import Logo from "@/public/ClaimVerifAI.png";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Eye, EyeOff } from "@/components/Icons";
 
 // Define the possible authentication states
 type AuthState =
@@ -35,12 +37,20 @@ export default function LandingPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [role, setRole] = useState<"Contractor" | "HomeOwner">("HomeOwner");
   const [confirmationCode, setConfirmationCode] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [successMessage, setSuccessMessage] = useState("");
 
   // Authentication and UI state
   const [authState, setAuthState] = useState<AuthState>("initial");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [challengeResponse, setChallengeResponse] = useState<any>(null);
 
   // Initial auth check when component mounts
@@ -61,6 +71,69 @@ export default function LandingPage() {
     }
     checkAuthentication();
   }, [router]);
+
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const phoneNumber = value.replace(/\D/g, '');
+
+    // Format as (XXX) XXX-XXXX
+    if (phoneNumber.length >= 6) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
+    } else if (phoneNumber.length >= 3) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
+    } else {
+      return phoneNumber;
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // First Name validation
+    if (!firstName.trim()) {
+      newErrors.firstName = "First name is required";
+    }
+
+    // Last Name validation
+    if (!lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    // Phone validation (exactly 10 digits as in IncidentReportForm)
+    const digitsOnly = phoneNumber.replace(/\D/g, '');
+    if (!digitsOnly) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (digitsOnly.length < 10) {
+      newErrors.phoneNumber = "Phone number must be at least 10 digits";
+    } else if (digitsOnly.length > 15) {
+      newErrors.phoneNumber = "Phone number is too long";
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = "Invalid email address";
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    // Confirm Password validation
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setFieldErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Handle Login submission
   const handleLogin = async (e: React.FormEvent) => {
@@ -119,10 +192,10 @@ export default function LandingPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
     setSuccessMessage("");
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    if (!validateForm()) {
       return;
     }
 
@@ -136,6 +209,10 @@ export default function LandingPage() {
         options: {
           userAttributes: {
             email: normalizedEmail,
+            given_name: firstName,
+            family_name: lastName,
+            phone_number: phoneNumber,
+            "custom:role": role,
           },
         },
       });
@@ -223,7 +300,7 @@ export default function LandingPage() {
         );
       case "signup":
         return (
-          <div className="w-full max-w-sm space-y-6 animate-in fade-in zoom-in duration-300">
+          <div className="w-full max-w-lg space-y-6 animate-in fade-in zoom-in duration-300">
             <div className="flex flex-col space-y-2 text-center">
               <h1 className="text-2xl font-semibold tracking-tight">Create Account</h1>
               <p className="text-sm text-muted-foreground">
@@ -231,39 +308,154 @@ export default function LandingPage() {
               </p>
             </div>
             <form onSubmit={handleSignup} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => {
+                      setFirstName(e.target.value);
+                      if (fieldErrors.firstName) setFieldErrors(prev => ({ ...prev, firstName: "" }));
+                    }}
+                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${fieldErrors.firstName ? 'border-red-500' : 'border-input'}`}
+                    required
+                    placeholder="John"
+                  />
+                  {fieldErrors.firstName && <p className="text-xs text-red-500 mt-1">{fieldErrors.firstName}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => {
+                      setLastName(e.target.value);
+                      if (fieldErrors.lastName) setFieldErrors(prev => ({ ...prev, lastName: "" }));
+                    }}
+                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${fieldErrors.lastName ? 'border-red-500' : 'border-input'}`}
+                    required
+                    placeholder="Doe"
+                  />
+                  {fieldErrors.lastName && <p className="text-xs text-red-500 mt-1">{fieldErrors.lastName}</p>}
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
-                />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => {
+                      const formatted = formatPhoneNumber(e.target.value);
+                      setPhoneNumber(formatted);
+                      if (fieldErrors.phoneNumber) setFieldErrors(prev => ({ ...prev, phoneNumber: "" }));
+                    }}
+                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${fieldErrors.phoneNumber ? 'border-red-500' : 'border-input'}`}
+                    required
+                    placeholder="(555) 555-5555"
+                    maxLength={14}
+                  />
+                  {fieldErrors.phoneNumber && <p className="text-xs text-red-500 mt-1">{fieldErrors.phoneNumber}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: "" }));
+                    }}
+                    className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${fieldErrors.email ? 'border-red-500' : 'border-input'}`}
+                    required
+                    placeholder="john@example.com"
+                  />
+                  {fieldErrors.email && <p className="text-xs text-red-500 mt-1">{fieldErrors.email}</p>}
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
-                />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showSignupPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: "" }));
+                      }}
+                      className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pr-10 ${fieldErrors.password ? 'border-red-500' : 'border-input'}`}
+                      required
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                    >
+                      {showSignupPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && <p className="text-xs text-red-500 mt-1">{fieldErrors.password}</p>}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none">Confirm Password</label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => {
+                        setConfirmPassword(e.target.value);
+                        if (fieldErrors.confirmPassword) setFieldErrors(prev => ({ ...prev, confirmPassword: "" }));
+                      }}
+                      className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pr-10 ${fieldErrors.confirmPassword ? 'border-red-500' : 'border-input'}`}
+                      required
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {fieldErrors.confirmPassword && <p className="text-xs text-red-500 mt-1">{fieldErrors.confirmPassword}</p>}
+                </div>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none">Create Profile as:</label>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setRole("Contractor")}
+                    className={`flex-1 py-2 px-4 rounded-md border text-sm font-medium transition-colors ${role === "Contractor"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-background text-foreground border-input hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                  >
+                    Contractor
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole("HomeOwner")}
+                    className={`flex-1 py-2 px-4 rounded-md border text-sm font-medium transition-colors ${role === "HomeOwner"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-background text-foreground border-input hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                  >
+                    Home Owner
+                  </button>
+                </div>
+              </div>
+
               {error && <div className="text-sm text-red-500 font-medium">{error}</div>}
               <Button type="submit" className="w-full bg-[#17315f] hover:bg-[#1a3a73] text-white">
-                Sign Up
+                Submit
               </Button>
             </form>
             <div className="text-center text-sm">
@@ -323,17 +515,18 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {successMessage && <div className="text-sm text-green-600 bg-green-50 p-2 rounded text-center">{successMessage}</div>}
+            {successMessage && <div className="text-sm text-green-600 bg-green-50 dark:bg-green-900/20 p-2 rounded text-center">{successMessage}</div>}
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Username / Email</label>
+                <label className="text-sm font-medium leading-none">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   required
+                  placeholder="john@example.com"
                 />
               </div>
 
@@ -341,13 +534,23 @@ export default function LandingPage() {
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium leading-none">Password</label>
                 </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pr-10"
+                    required
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
 
               {error && <div className="text-sm text-red-500 font-medium">{error}</div>}
@@ -364,7 +567,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setAuthState("password-reset")}
-                className="text-sm text-blue-600 hover:text-blue-800 underline underline-offset-4"
+                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline underline-offset-4"
               >
                 Forgot Password? Reset Here
               </button>
@@ -374,7 +577,7 @@ export default function LandingPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white px-2 text-muted-foreground">Or</span>
+                  <span className="bg-background px-2 text-muted-foreground">Or</span>
                 </div>
               </div>
 
@@ -396,7 +599,12 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-white">
+    <div className="flex min-h-screen w-full bg-background text-foreground transition-colors duration-300">
+      {/* Theme Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+
       {/* Left Side - Branding */}
       <div className="hidden lg:flex w-1/2 relative flex-col justify-center items-center text-white p-10 overflow-hidden">
         {/* Background Image */}
@@ -408,12 +616,12 @@ export default function LandingPage() {
             backgroundPosition: "center",
           }}
         >
-          <div className="absolute inset-0 bg-[#17315f]/80 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[#17315f]/80 dark:bg-[#0a192f]/90 mix-blend-multiply" />
         </div>
 
         {/* Content Overlay */}
         <div className="relative z-10 flex flex-col items-center text-center space-y-6 max-w-lg">
-          <div className="bg-white/90 p-6 rounded-2xl shadow-xl mb-4 backdrop-blur-sm">
+          <div className="bg-white dark:bg-[#111827] p-6 rounded-2xl shadow-xl mb-4 border border-transparent dark:border-white/10 transition-all duration-300">
             <Image
               src={Logo}
               alt="ClaimVerifAI Logo"
@@ -446,16 +654,25 @@ export default function LandingPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex w-full lg:w-1/2 flex-col justify-center items-center p-8 lg:p-12 relative">
-        <div className="absolute top-8 right-8 lg:hidden">
-          <Image
-            src={Logo}
-            alt="ClaimVerifAI Logo"
-            width={150}
-            height={50}
-            className="object-contain opacity-80"
-          />
+      <div className="flex w-full lg:w-1/2 flex-col justify-center items-center p-8 lg:p-12 relative bg-background">
+        <div className="absolute top-8 left-8 lg:hidden">
+          {/* Mobile Logo or other header elements if needed */}
         </div>
+
+        {/* Mobile Logo for small screens */}
+        <div className="lg:hidden mb-8">
+          <div className="bg-white/90 p-4 rounded-xl shadow-md backdrop-blur-sm">
+            <Image
+              src={Logo}
+              alt="ClaimVerifAI Logo"
+              width={200}
+              height={70}
+              className="object-contain"
+              priority
+            />
+          </div>
+        </div>
+
         {renderAuthContent()}
       </div>
     </div>

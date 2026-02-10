@@ -127,7 +127,7 @@ export function NavUser() {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="min-w-56 rounded-lg bg-white dark:bg-zinc-950 shadow-lg border border-zinc-200 dark:border-zinc-800 z-[9000]"
+              className="min-w-56 rounded-lg bg-popover text-popover-foreground shadow-lg border border-border z-[9000]"
               side={isMobile ? "bottom" : "right"}
               align="end"
               sideOffset={4}
@@ -149,16 +149,9 @@ export function NavUser() {
                   </div>
                 </div>
               </DropdownMenuLabel>
-              {/* <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
-              <DropdownMenuGroup>
-                <DropdownMenuItem className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800">
-                  <MaterialIcons.Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-              </DropdownMenuGroup> */}
-              <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
+              <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
-                className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800"
+                className="cursor-pointer hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                 onClick={handleSignOut}
                 disabled={isSigningOut}
               >

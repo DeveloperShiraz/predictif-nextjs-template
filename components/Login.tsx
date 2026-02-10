@@ -159,7 +159,7 @@ export default function LoginPage() {
 
       default: // "unauthenticated"
         return (
-          <div className="z-10 w-full max-w-md p-6 space-y-6 bg-white/90 dark:bg-zinc-900/90 rounded-lg shadow-xl backdrop-blur-sm">
+          <div className="z-10 w-full max-w-md p-6 space-y-6 bg-card/95 supports-[backdrop-filter]:bg-card/60 rounded-lg shadow-xl backdrop-blur-sm border border-border text-card-foreground">
             <div className="space-y-2 text-center">
               <h1 className="text-2xl font-bold">Sign In</h1>
               <p className="text-muted-foreground">
@@ -197,7 +197,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-blue-300 dark:border-blue-700 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   required
                 />
               </div>

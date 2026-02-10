@@ -13,6 +13,13 @@ import {
   AlertCircle,
   Filter,
 } from "@/components/Icons";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 import { useUserRole } from "@/lib/auth/useUserRole";
 import { useRouter } from "next/navigation";
 import { AddUserDialog } from "@/components/AddUserDialog";
@@ -206,7 +213,7 @@ export default function UsersPage() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <Heading size="sm" className="text-[#000000]">
+        <Heading size="sm" className="text-foreground">
           User Management
         </Heading>
         <div className="flex gap-2">
@@ -236,16 +243,16 @@ export default function UsersPage() {
         {/* Role Stats Cards - Now clickable for filtering */}
         <button
           onClick={() => setRoleFilter(roleFilter === "Admin" ? "all" : "Admin")}
-          className={`bg-white rounded-lg shadow p-6 border transition-all text-left ${roleFilter === "Admin"
+          className={`bg-card text-card-foreground rounded-lg shadow p-6 border transition-all text-left ${roleFilter === "Admin"
             ? "border-red-600 ring-2 ring-red-600"
-            : "border-gray-200 hover:border-red-300"
+            : "border-gray-200 dark:border-gray-700 hover:border-red-300"
             }`}
         >
           <div className="flex items-center gap-3 mb-2">
             <Shield className="w-5 h-5 text-red-600" />
-            <h3 className="text-sm font-medium text-gray-500">Admins</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">Admins</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{adminCount}</p>
+          <p className="text-3xl font-bold">{adminCount}</p>
           {roleFilter === "Admin" && (
             <p className="text-xs text-red-600 mt-2">Filtering by this role</p>
           )}
@@ -257,18 +264,18 @@ export default function UsersPage() {
               roleFilter === "IncidentReporter" ? "all" : "IncidentReporter"
             )
           }
-          className={`bg-white rounded-lg shadow p-6 border transition-all text-left ${roleFilter === "IncidentReporter"
+          className={`bg-card text-card-foreground rounded-lg shadow p-6 border transition-all text-left ${roleFilter === "IncidentReporter"
             ? "border-blue-600 ring-2 ring-blue-600"
-            : "border-gray-200 hover:border-blue-300"
+            : "border-gray-200 dark:border-gray-700 hover:border-blue-300"
             }`}
         >
           <div className="flex items-center gap-3 mb-2">
             <FileText className="w-5 h-5 text-blue-600" />
-            <h3 className="text-sm font-medium text-gray-500">
+            <h3 className="text-sm font-medium text-muted-foreground">
               Incident Reporters
             </h3>
           </div>
-          <p className="text-3xl font-bold text-gray-900">
+          <p className="text-3xl font-bold">
             {incidentReporterCount}
           </p>
           {roleFilter === "IncidentReporter" && (
@@ -280,16 +287,16 @@ export default function UsersPage() {
           onClick={() =>
             setRoleFilter(roleFilter === "HomeOwner" ? "all" : "HomeOwner")
           }
-          className={`bg-white rounded-lg shadow p-6 border transition-all text-left ${roleFilter === "HomeOwner"
+          className={`bg-card text-card-foreground rounded-lg shadow p-6 border transition-all text-left ${roleFilter === "HomeOwner"
             ? "border-green-600 ring-2 ring-green-600"
-            : "border-gray-200 hover:border-green-300"
+            : "border-gray-200 dark:border-gray-700 hover:border-green-300"
             }`}
         >
           <div className="flex items-center gap-3 mb-2">
             <UsersIcon className="w-5 h-5 text-green-600" />
-            <h3 className="text-sm font-medium text-gray-500">Home Owners</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">Home Owners</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-900">{customerCount}</p>
+          <p className="text-3xl font-bold">{customerCount}</p>
           {roleFilter === "HomeOwner" && (
             <p className="text-xs text-green-600 mt-2">Filtering by this role</p>
           )}
@@ -299,33 +306,34 @@ export default function UsersPage() {
       {/* Company Filter (SuperAdmin only) */}
       {isSuperAdmin && companies.length > 0 && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             Filter by Company
           </label>
-          <select
-            value={companyFilter}
-            onChange={(e) => setCompanyFilter(e.target.value)}
-            className="block w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="all">All Companies</option>
-            <option value="no-company">No Company Assigned</option>
-            {companies.map((company) => (
-              <option key={company.id} value={company.id}>
-                {company.name}
-              </option>
-            ))}
-          </select>
+          <Select value={companyFilter} onValueChange={setCompanyFilter}>
+            <SelectTrigger className="w-full md:w-64">
+              <SelectValue placeholder="Filter by company" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Companies</SelectItem>
+              <SelectItem value="no-company">No Company Assigned</SelectItem>
+              {companies.map((company) => (
+                <SelectItem key={company.id} value={company.id}>
+                  {company.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow border border-gray-200">
+      <div className="bg-card text-card-foreground rounded-lg shadow border border-gray-200 dark:border-gray-700">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold">
                 {roleFilter === "all" ? "All Users" : `${roleFilter === "IncidentReporter" ? "Incident Reporters" : roleFilter + "s"}`}
               </h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {roleFilter === "all"
                   ? "Manage user accounts and roles"
                   : `Showing ${filteredUsers.length} ${roleFilter === "IncidentReporter" ? "incident reporters" : roleFilter.toLowerCase() + "s"}`}
@@ -403,11 +411,11 @@ export default function UsersPage() {
                   {filteredUsers.map((user) => (
                     <tr
                       key={user.username}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-muted/50 transition-colors"
                     >
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-foreground">
                             {user.email}
                           </span>
                           {user.email === userEmail && (

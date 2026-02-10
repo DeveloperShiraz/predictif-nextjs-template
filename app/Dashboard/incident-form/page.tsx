@@ -35,7 +35,7 @@ const IncidentFormPage = () => {
 
   return (
     <div className="p-6">
-      <Heading size="sm" className="text-[#000000] mb-6">
+      <Heading size="sm" className="text-foreground mb-6">
         Submit Incident Report
       </Heading>
 
@@ -53,7 +53,7 @@ const IncidentFormPage = () => {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md p-3 text-sm font-mono break-all">
+              <div className="flex-1 bg-background border border-input rounded-md p-3 text-sm font-mono break-all text-foreground">
                 {`${typeof window !== 'undefined' ? window.location.origin : ''}/public-form/${companyId}`}
               </div>
               <div className="flex gap-2">
@@ -87,8 +87,8 @@ const IncidentFormPage = () => {
               </div>
             </div>
             {companyName && (
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                This form is for: <span className="font-semibold">{companyName}</span>
+              <p className="text-xs text-muted-foreground mt-2">
+                This form is for: <span className="font-semibold text-foreground">{companyName}</span>
               </p>
             )}
           </CardContent>
